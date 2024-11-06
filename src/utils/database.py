@@ -16,12 +16,12 @@ def establish_connection():
     try:
         # credenciales
         #TODO: Cambiar credenciales a servidor de produccion. En espera de los permisos y credenciales
-        connection = oracledb.connect(user="USER_CARMELITA", password="USER_CARMELITA",host='192.168.11.130', port=1521, sid="dbbiosal")
+        connection = oracledb.connect(user="SOLINFTEC", password="S0L1NFT3CAgr125*",host='192.168.10.6', port=1521, sid="dbbiosalc")
 
         cursor = connection.cursor()
         parametro_ayer = datetime.today() + timedelta(days=-1)
-        # parametro_ayer_formateado =  parametro_ayer.strftime('%d/%m/%Y')
-        parametro_ayer_formateado = '01/11/2024'
+        parametro_ayer_formateado =  parametro_ayer.strftime('%d/%m/%Y')
+        # parametro_ayer_formateado = '01/11/2024'
         # vw.liberacion            cd_orden_servico,
         #TODO: consulta a tabla log sobre existencia de orden de servicio, si existe  fg_dml='A' de l contrario fg_dml='I'
         query= """
@@ -61,14 +61,10 @@ def establish_connection():
             vw.data_ultcol,
             tl.p3
         """
-        print("antes de ejecutar el query...")
         cursor.execute(query, {'parametro_ayer_formateado':parametro_ayer_formateado})
-        print("despues de ejecutar el query... ")
         results = cursor.fetchall()
-        print("RESULTS: ", results)
         data = []
         for row in results:
-            print("entró..")
             record = {
                 "cd_unidade" : int(row[0]),
                 "cd_operacao" : int(row[1]),
@@ -89,8 +85,6 @@ def establish_connection():
                 "identifier": "produtividade",
                 "data": data
             }
-            # print("response: ", response)
-
             # conversion de respuesta a json
             json_response = json.dumps(response, ensure_ascii=False)
             # print(f"json es : {json_response}")
