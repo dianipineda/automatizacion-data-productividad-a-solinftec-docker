@@ -14,8 +14,7 @@ except Exception as e:
 
 def establish_connection():
     try:
-        # credenciales
-        #TODO: Cambiar credenciales a servidor de produccion. En espera de los permisos y credenciales
+        # credenciales servidor de produccion
         connection = oracledb.connect(user="SOLINFTEC", password="S0L1NFT3CAgr125*",host='192.168.10.6', port=1521, sid="dbbiosalc")
 
         cursor = connection.cursor()
@@ -28,7 +27,7 @@ def establish_connection():
         SELECT
             '1'                      cd_unidade,
             '9249'                   cd_operacao,
-            vw.faz||vw.tal||tl.p3||to_char(vw.data_ultcol,'ddmmyyyy') cd_orden_servico,
+            TO_NUMBER(vw.faz||vw.tal||tl.p3||to_char(vw.data_ultcol,'ddmmyyyy')) cd_ordem_servico,
             vw.faz                   cd_fazenda,
             vw.tal                   cd_zona,
             tl.p3                    cd_talhao,
@@ -68,7 +67,7 @@ def establish_connection():
             record = {
                 "cd_unidade" : int(row[0]),
                 "cd_operacao" : int(row[1]),
-                "cd_orden_servico": row[2],
+                "cd_ordem_servico": int(row[2]),
                 "cd_fazenda": row[3],
                 "cd_zona": row[4],
                 "cd_talhao": row[5],
@@ -85,6 +84,9 @@ def establish_connection():
                 "identifier": "produtividade",
                 "data": data
             }
+            print("data: ")
+            print(data)
+            print("-----------------------------")
             # conversion de respuesta a json
             json_response = json.dumps(response, ensure_ascii=False)
             # print(f"json es : {json_response}")

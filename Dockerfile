@@ -9,3 +9,6 @@ RUN ln -sf python3 /usr/bin/python
 RUN pip3 install --upgrade pip
 RUN python --version &&
 
+WORKDIR /app
+COPY . /app
+
