@@ -1,10 +1,9 @@
 import oracledb
-from tkinter import messagebox
 import pandas as pd
 import json
 from datetime import datetime, timedelta
 
-oracle_client_path = r"D:\clientes_bbdd\instantclient_19_24"
+oracle_client_path = r"/opt/oracle/instantclient_19_23"
 
 try:
     oracledb.init_oracle_client(lib_dir=oracle_client_path)
