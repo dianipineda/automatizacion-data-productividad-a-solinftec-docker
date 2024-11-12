@@ -83,9 +83,8 @@ def establish_connection():
                 "identifier": "produtividade",
                 "data": data
             }
-            print("data: ")
-            print(data)
-            print("-----------------------------")
+            # print("data: ")
+            # print(data)
             # conversion de respuesta a json
             json_response = json.dumps(response, ensure_ascii=False)
             # print(f"json es : {json_response}")
