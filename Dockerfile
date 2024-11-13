@@ -33,7 +33,11 @@ ENV TNS_ADMIN=$ORACLE_HOME
 
 
 # Crear y configurar el cron job con las variables de entorno cargadas
+#comentar/descomentar - prod
+# RUN echo "15 6 * * 1-6 . /etc/environment; export LD_LIBRARY_PATH=$ORACLE_HOME && /app/venv/bin/python /app/main.py >> /var/log/myapp.log 2>&1" > /etc/cron.d/mycron
+#comentar/descomentar - dev
 RUN echo "*/3 * * * * . /etc/environment; export LD_LIBRARY_PATH=$ORACLE_HOME && /app/venv/bin/python /app/main.py >> /var/log/myapp.log 2>&1" > /etc/cron.d/mycron
+
 
 RUN chmod 0644 /etc/cron.d/mycron
 RUN crontab /etc/cron.d/mycron
@@ -43,7 +47,3 @@ RUN touch /var/log/myapp.log && chmod 666 /var/log/myapp.log
 
 # Iniciar cron en segundo plano y seguir el archivo de log
 CMD ["cron", "-f"]
-
-#TODO: NECESITO PROBAR QUE Esto corre en el contenedor cada 3 minutos en el cron, aun no veo logs
-#! no se como funciona en el contenedor el venv creado para este
-#! sospecho un conflicto de version de python
