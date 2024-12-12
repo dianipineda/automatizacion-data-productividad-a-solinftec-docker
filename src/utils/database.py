@@ -4,8 +4,17 @@ import json
 from datetime import datetime, timedelta
 import os
 from dotenv import load_dotenv
+import sys
+# Detectar si estamos empaquetados
+if getattr(sys, 'frozen', False):  # Si es ejecutable empaquetado
+    base_path = sys._MEIPASS
+else:  # Si es un script normal
+    base_path = os.path.dirname(os.path.abspath(__file__))
 
-load_dotenv()
+env_path = os.path.join(base_path, '.env')
+load_dotenv(dotenv_path=env_path)
+
+# load_dotenv()
 
 # oracle_client_path = r"/opt/oracle/instantclient_19_23"
 oracle_client_path = os.getenv("ORACLE_CLIENT_PATH")

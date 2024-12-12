@@ -1,14 +1,35 @@
+
+__version_web__ = "1.0.0"
+__version_desktop__ = "1.0.0"
+#?comentar/descomentar Ejecución modo web
+# from flask import Flask, jsonify, render_template
+#?comentar/descomentar Ejecución modo escritorio
 from flask import Flask
+from source.oracle_client import install_oracle_client
 from src.controllers.ins_productividad import ins_productividad
+from src.ui_desktop.ui import vista
 
 # print("establish_connection-----> ", establish_connection())
-app = Flask(__name__)
+app = Flask(__name__, template_folder="src/templates", static_folder="src/static")
 
-# @app.route('/',methods=['GET','POST'])
-def main():
-    ins_productividad()
+#?comentar/descomentar Ejecución modo web
+# @app.route('/', methods=['GET'])
+# def home_web():
+#     return render_template('index.html') 
+
+#?comentar/descomentar Ejecución modo web
+# @app.route('/ins_productividad',methods=['POST'])
+# def main_web():
+#     response = ins_productividad()
+#     return jsonify(response)
     
+def main_desktop():
+    install_oracle_client()
+    vista()
 
 if __name__ == '__main__':
-    main()
-    # app.run(host="0.0.0.0", port=4000, debug=False)
+    #?comentar/descomentar Ejecución modo web
+    # app.run(host="0.0.0.0", port=5000, debug=True)
+
+    #?comentar/descomentar Ejecución modo escritorio
+    main_desktop()

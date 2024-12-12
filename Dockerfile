@@ -5,9 +5,9 @@ COPY requeriments.txt /app/
 
 # Instalar dependencias necesarias
 RUN apt-get update && apt-get install -y \
-    cron \
-    libaio1 \
-    wget \
+    #?cron \ 
+    #?libaio1 \
+    #?wget \
     unzip \
     procps && \
     rm -rf /var/lib/apt/lists/*
@@ -34,16 +34,19 @@ ENV TNS_ADMIN=$ORACLE_HOME
 
 # Crear y configurar el cron job con las variables de entorno cargadas
 #comentar/descomentar - prod
-# RUN echo "15 6 * * 1-6 . /etc/environment; export LD_LIBRARY_PATH=$ORACLE_HOME && /app/venv/bin/python /app/main.py >> /var/log/myapp.log 2>&1" > /etc/cron.d/mycron
+#?RUN echo "15 6 * * 1-6 . /etc/environment; export LD_LIBRARY_PATH=$ORACLE_HOME && /app/venv/bin/python /app/main.py >> /var/log/myapp.log 2>&1" > /etc/cron.d/mycron
 #comentar/descomentar - dev
-RUN echo "*/3 * * * * . /etc/environment; export LD_LIBRARY_PATH=$ORACLE_HOME && /app/venv/bin/python /app/main.py >> /var/log/myapp.log 2>&1" > /etc/cron.d/mycron
+#?RUN echo "*/3 * * * * . /etc/environment; export LD_LIBRARY_PATH=$ORACLE_HOME && /app/venv/bin/python /app/main.py >> /var/log/myapp.log 2>&1" > /etc/cron.d/mycron
 
 
-RUN chmod 0644 /etc/cron.d/mycron
-RUN crontab /etc/cron.d/mycron
+#?RUN chmod 0644 /etc/cron.d/mycron
+#?RUN crontab /etc/cron.d/mycron
 
 # Asegurar permisos de los logs
-RUN touch /var/log/myapp.log && chmod 666 /var/log/myapp.log
+#?RUN touch /var/log/myapp.log && chmod 666 /var/log/myapp.log
 
 # Iniciar cron en segundo plano y seguir el archivo de log
-CMD ["cron", "-f"]
+#?CMD ["cron", "-f"]
+
+#!Nota:
+    #?comentar/descomentar para desactivar/activar la funcionalidad de tarea programada de esta app

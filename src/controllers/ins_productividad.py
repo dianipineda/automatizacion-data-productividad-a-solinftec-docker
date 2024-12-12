@@ -19,6 +19,8 @@ def ins_productividad():
         res =  requests.post('https://scdi.saas-solinftec.com/push', data = establish_connection(), headers=cabeceras, verify=False)
         print(f"el estado es: {res.status_code}")
         # print(f"el envio es: {res.json()}")
-        return res.json()
+        return {"status_code":res.status_code, "response": res.json()}
+        
     except requests.exceptions.HTTPError as err:
         print(err)
+        return {"error": str(err)}
