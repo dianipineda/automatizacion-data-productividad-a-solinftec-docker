@@ -5,6 +5,7 @@ from src.controllers.ins_productividad import ins_productividad
 def vista():
     window = tk.Tk()
     window.title('Productividad de Haciendas Suerte')
+    #TODO: Quedé aqui: debo implementar dropdowns para haciendas y suertes
     def enviar():
         response = ins_productividad()
         if "error" in response:

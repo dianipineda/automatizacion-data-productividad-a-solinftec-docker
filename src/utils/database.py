@@ -30,7 +30,7 @@ except Exception as e:
     print("Error initializing Oracle Client:", e)
         
 #TODO: consulta a tabla log sobre existencia de orden de servicio, si existe  fg_dml='A' de l contrario fg_dml='I'
-def query_get_productividad(parametro_ayer_formateado, haciendas, suertes):
+def query_get_productividad(parametro_ayer_formateado, faz, tal):
     return """
     SELECT
         '1'                      cd_unidade,
@@ -142,7 +142,7 @@ def comprobacion_ping_bbdd():
         
 def establish_connection():
     try:
-        comprobacion_ping_bbdd()
+        comprobacion_ping_bbdd() #TODO ver si esto sirve o es innnecesario
         # conexion a servidor
         try:
             connection = oracledb.connect(
@@ -158,40 +158,41 @@ def establish_connection():
 
         parametro_ayer = datetime.today() + timedelta(days=-1)
         parametro_ayer_formateado =  parametro_ayer.strftime('%d/%m/%Y')
+        parametro_ayer_formateado = "01/11/2024" # valor para pruebas. No hay valores despues de esta fecha al hacer la consulta.Nota: este valor no se puede comentar hasta que en la bbdd haya registros mas recientes
+        faz = "106" #TODO: El valor de esta variable, amarrarlo con un dropdown
+        tal = "14" #TODO: El valor de esta variable, debe ser un filtro del valor seleccionado en faz, amarrarlo con un dropdown
+        # try:        
+        #     print("entra a haciendas")   
+        #     cursor_haciendas = connection.cursor()
+        #     query_haciendas = list_haciendas(parametro_ayer_formateado)
+        #     cursor_haciendas.execute(query_haciendas, {'parametro_ayer_formateado':parametro_ayer_formateado})
+        #     haciendas = cursor_haciendas.fetchall()
+        # except oracledb.DatabaseError as e:
+        #     print(f"Error en la base de datos en haciendas: {e}")
 
-        try:        
-            print("entra a haciendas")   
-            cursor_haciendas = connection.cursor()
-            query_haciendas = list_haciendas(parametro_ayer_formateado)
-            cursor_haciendas.execute(query_haciendas, {'parametro_ayer_formateado':parametro_ayer_formateado})
-            haciendas = cursor_haciendas.fetchall()
-        except oracledb.DatabaseError as e:
-            print(f"Error en la base de datos en haciendas: {e}")
 
-
-        try:
-            print("entra a suertes")
-            cursor_suertes = connection.cursor()
-            query_suertes = list_suertes(parametro_ayer_formateado)
-            cursor_suertes.execute(query_suertes, {'parametro_ayer_formateado':parametro_ayer_formateado})
-            suertes = cursor_suertes.fetchall()
-        except oracledb.DatabaseError as e:
-            print(f"Error en la base de datos en suertes: {e}")
+        # try:
+        #     print("entra a suertes")
+        #     cursor_suertes = connection.cursor()
+        #     query_suertes = list_suertes(parametro_ayer_formateado)
+        #     cursor_suertes.execute(query_suertes, {'parametro_ayer_formateado':parametro_ayer_formateado})
+        #     suertes = cursor_suertes.fetchall()
+        # except oracledb.DatabaseError as e:
+        #     print(f"Error en la base de datos en suertes: {e}")
 
         try:
             print("entra al query general")
             cursor = connection.cursor()
-            query= query_get_productividad(parametro_ayer_formateado, haciendas, suertes)
+            query= query_get_productividad(parametro_ayer_formateado, faz, tal)
             cursor.execute(query, {
                 'parametro_ayer_formateado':parametro_ayer_formateado,
-                'faz':haciendas,
-                'tal':suertes
+                'faz':faz,
+                'tal':tal
             })
-            #TODO: corregir el siguiente error que dispara aqui:
-            #! entra al query general
-            #! Error en la base de datos en query final: DPY-3002: Python value of type "tuple" is not supported
-            #! Ocurrió un error inesperado: local variable 'results' referenced before assignment
             results = cursor.fetchall()
+            if results == []:
+                print("No hay resultados de la consulta realizada")
+                return
         except oracledb.DatabaseError as e:
             print(f"Error en la base de datos en query final: {e}")
 
@@ -217,7 +218,7 @@ def establish_connection():
                 "data": data
             }
             json_response = json.dumps(response, ensure_ascii=False)
-            print("El número de resultados es: ------------->: ", len(json.loads(json_response)))
+            print("El número de resultados es: ------------->: ", len(json.loads(json_response)))# imprime el numero de resultados
             return json_response
         #TODO: insercion de registro en tabla log de registro insertado o actualizado con sus campos ID_PROCESO, Orden de servicio y Nuevo(estado A,I)
         else:
