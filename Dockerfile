@@ -3,25 +3,36 @@ FROM python:3.10.11
 WORKDIR /app
 COPY requeriments.txt /app/
 
+#? comentar/descomentar modo escritorio
 # Instalar dependencias necesarias
 RUN apt-get update && apt-get install -y \
-    #?cron \ 
-    #?libaio1 \
-    #?wget \
+    cron \ 
+    libaio1 \
+    wget \
     unzip \
     procps && \
     rm -rf /var/lib/apt/lists/*
 
-COPY instantclient-basic-linux.x64-19.23.0.0.0dbru.zip /tmp/instantclient.zip
+#? comentar/descomentar modo web
+# RUN apt-get update && apt-get install -y unzip procps
+# RUN rm -rf /var/lib/apt/lists/*
 
-RUN unzip /tmp/instantclient.zip -d /opt/oracle/ && \
-    rm /tmp/instantclient.zip
-# Crea un entorno virtual en el contenedor y activa el entorno
+# COPY instantclient-basic-linux.x64-19.23.0.0.0dbru.zip /tmp/instantclient.zip
+
+# RUN unzip /tmp/instantclient.zip -d /opt/oracle/ && \
+#     rm /tmp/instantclient.zip
+    
+# Crear el entorno virtual
 RUN python -m venv /app/venv
 
-# Instala las dependencias de Python dentro del entorno virtual
-RUN /app/venv/bin/pip install --upgrade pip && \
-    /app/venv/bin/pip install -r /app/requeriments.txt
+# Actualizar pip
+RUN /app/venv/bin/pip install --upgrade pip
+
+# Copiar el archivo requeriments.txt
+COPY requeriments.txt /app/
+
+# Instalar las dependencias
+RUN /app/venv/bin/pip install -r /app/requeriments.txt
 
 COPY . /app/
 

@@ -5,6 +5,7 @@ __version_desktop__ = "1.0.0"
 # from flask import Flask, jsonify, render_template
 #?comentar/descomentar Ejecución modo escritorio
 from flask import Flask
+
 from source.oracle_client import install_oracle_client
 from src.controllers.ins_productividad import ins_productividad
 from src.ui_desktop.ui import vista
@@ -22,7 +23,8 @@ app = Flask(__name__, template_folder="src/templates", static_folder="src/static
 # def main_web():
 #     response = ins_productividad()
 #     return jsonify(response)
-    
+
+#?comentar/descomentar Ejecución modo escritorio    
 def main_desktop():
     install_oracle_client()
     vista()
