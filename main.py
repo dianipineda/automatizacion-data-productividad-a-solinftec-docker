@@ -10,7 +10,6 @@ from source.oracle_client import install_oracle_client
 from src.controllers.ins_productividad import ins_productividad
 from src.ui_desktop.ui import vista
 
-# print("establish_connection-----> ", establish_connection())
 app = Flask(__name__, template_folder="src/templates", static_folder="src/static")
 
 #?comentar/descomentar Ejecución modo web

@@ -9,6 +9,12 @@ import socket
 import subprocess
 import time
 
+# Variables
+CHECK_INTERVAL = 10  # Tiempo en segundos entre verificaciones
+parametro_ayer = datetime.today() + timedelta(days=-1)
+parametro_ayer_formateado =  parametro_ayer.strftime('%d/%m/%Y')
+parametro_ayer_formateado = "01/11/2024" # valor para pruebas. No hay valores despues de esta fecha al hacer la consulta.Nota: este valor no se puede comentar hasta que en la bbdd haya registros mas recientes
+
 # Detectar si estamos empaquetados
 if getattr(sys, 'frozen', False):  # Si es ejecutable empaquetado
     base_path = sys._MEIPASS
@@ -17,10 +23,6 @@ else:  # Si es un script normal
 
 env_path = os.path.join(base_path, '.env')
 load_dotenv(dotenv_path=env_path)
-
-# load_dotenv()
-
-# oracle_client_path = r"/opt/oracle/instantclient_19_23"
 oracle_client_path = os.getenv("ORACLE_CLIENT_PATH")
 
 try:
@@ -30,6 +32,7 @@ except Exception as e:
     print("Error initializing Oracle Client:", e)
         
 #TODO: consulta a tabla log sobre existencia de orden de servicio, si existe  fg_dml='A' de l contrario fg_dml='I'
+# Funciones que retornan queries
 def query_get_productividad(parametro_ayer_formateado, faz, tal):
     return """
     SELECT
@@ -70,7 +73,7 @@ def query_get_productividad(parametro_ayer_formateado, faz, tal):
         vw.data_ultcol,
         tl.p3
     """
-def list_haciendas(parametro_ayer_formateado):
+def query_get_haciendas(parametro_ayer_formateado):
     return """
         SELECT DISTINCT
             vw.faz AS cd_fazenda
@@ -93,7 +96,7 @@ def list_haciendas(parametro_ayer_formateado):
             vw.faz
 
     """
-def list_suertes(parametro_ayer_formateado):
+def query_get_suertes(parametro_ayer_formateado, faz):
     return """
         SELECT DISTINCT
             vw.tal AS cd_zona
@@ -111,10 +114,12 @@ def list_suertes(parametro_ayer_formateado):
         WHERE
             vw.data_ultcol BETWEEN TO_DATE(:parametro_ayer_formateado, 'DD/MM/YYYY') - 30 AND TO_DATE(:parametro_ayer_formateado, 'DD/MM/YYYY')
             AND vw.ton_mol > 0
+            AND vw.faz = :faz
         ORDER BY
             vw.tal
     """
-CHECK_INTERVAL = 10  # Tiempo en segundos entre verificaciones
+
+# Funciones sobre ping
 def check_ping(host):
     try:
         # Ejecuta el comando ping
@@ -128,10 +133,8 @@ def check_ping(host):
     except Exception as e:
         print(f"Error ejecutando ping: {e}")
         return False
-
 def alert_no_ping(host):
     print(f"ALERTA: No hay conexión al host {host}")
-
 def comprobacion_ping_bbdd():
     while True:
         if not check_ping(os.getenv("DB_HOST")):
@@ -139,50 +142,51 @@ def comprobacion_ping_bbdd():
         else:
             # print(f'El host {os.getenv("DB_HOST")} es accesible.')
             return
-        
-def establish_connection():
+
+def connection_db():
+    # conexion a servidor
+    try:
+        return oracledb.connect(
+            user=os.getenv("DB_USER"),
+            password=os.getenv("DB_PASSWORD"),
+            host=os.getenv("DB_HOST"),
+            port=os.getenv("DB_PORT"),
+            sid=os.getenv("DB_SID")
+        )
+    except Exception as e:
+        print(f"Error al conectar: {e}")
+
+def get_haciendas():
+    connection_db()
+    try:         
+        cursor_haciendas = connection_db().cursor()
+        query_haciendas = query_get_haciendas(parametro_ayer_formateado)
+        cursor_haciendas.execute(query_haciendas, {'parametro_ayer_formateado':parametro_ayer_formateado})
+        haciendas = cursor_haciendas.fetchall()
+        return haciendas
+    except oracledb.DatabaseError as e:
+        print(f"Error en la base de datos en haciendas: {e}")
+def get_suertes():
+    connection_db()
+    try:
+        faz = "106"
+        cursor_suertes = connection_db().cursor()
+        query_suertes = query_get_suertes(parametro_ayer_formateado,faz)
+        cursor_suertes.execute(query_suertes, {
+            'parametro_ayer_formateado':parametro_ayer_formateado,
+            'faz':faz
+        })
+        suertes = cursor_suertes.fetchall()
+        return suertes
+    except oracledb.DatabaseError as e:
+        print(f"Error en la base de datos en suertes: {e}")
+def get_productividad():
     try:
         comprobacion_ping_bbdd() #TODO ver si esto sirve o es innnecesario
-        # conexion a servidor
-        try:
-            connection = oracledb.connect(
-                user=os.getenv("DB_USER"),
-                password=os.getenv("DB_PASSWORD"),
-                host=os.getenv("DB_HOST"),
-                port=os.getenv("DB_PORT"),
-                sid=os.getenv("DB_SID")
-            )
-            print("conexion exitosa")
-        except Exception as e:
-            print(f"Error al conectar: {e}")
-
-        parametro_ayer = datetime.today() + timedelta(days=-1)
-        parametro_ayer_formateado =  parametro_ayer.strftime('%d/%m/%Y')
-        parametro_ayer_formateado = "01/11/2024" # valor para pruebas. No hay valores despues de esta fecha al hacer la consulta.Nota: este valor no se puede comentar hasta que en la bbdd haya registros mas recientes
         faz = "106" #TODO: El valor de esta variable, amarrarlo con un dropdown
         tal = "14" #TODO: El valor de esta variable, debe ser un filtro del valor seleccionado en faz, amarrarlo con un dropdown
-        # try:        
-        #     print("entra a haciendas")   
-        #     cursor_haciendas = connection.cursor()
-        #     query_haciendas = list_haciendas(parametro_ayer_formateado)
-        #     cursor_haciendas.execute(query_haciendas, {'parametro_ayer_formateado':parametro_ayer_formateado})
-        #     haciendas = cursor_haciendas.fetchall()
-        # except oracledb.DatabaseError as e:
-        #     print(f"Error en la base de datos en haciendas: {e}")
-
-
-        # try:
-        #     print("entra a suertes")
-        #     cursor_suertes = connection.cursor()
-        #     query_suertes = list_suertes(parametro_ayer_formateado)
-        #     cursor_suertes.execute(query_suertes, {'parametro_ayer_formateado':parametro_ayer_formateado})
-        #     suertes = cursor_suertes.fetchall()
-        # except oracledb.DatabaseError as e:
-        #     print(f"Error en la base de datos en suertes: {e}")
-
         try:
-            print("entra al query general")
-            cursor = connection.cursor()
+            cursor = connection_db().cursor()
             query= query_get_productividad(parametro_ayer_formateado, faz, tal)
             cursor.execute(query, {
                 'parametro_ayer_formateado':parametro_ayer_formateado,
@@ -236,7 +240,7 @@ def establish_connection():
         try:
             if 'cursor' in locals() and cursor:
                 cursor.close()
-            if 'connection' in locals() and connection:
-                connection.close()
+            if 'connection' in locals() and connection_db():
+                connection_db().close()
         except Exception as close_error:
             print(f"Error al cerrar recursos: {close_error}")

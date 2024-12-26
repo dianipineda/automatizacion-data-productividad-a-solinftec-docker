@@ -1,5 +1,5 @@
 from src.controllers.auth import auth_token
-from src.utils.database import establish_connection
+from src.utils.database import get_productividad
 import requests
 import json
 from urllib3.exceptions import InsecureRequestWarning, MaxRetryError
@@ -21,7 +21,7 @@ def ins_productividad():
         try:
             res =  requests.post(
                 'https://scdi.saas-solinftec.com/push', 
-                data = establish_connection(),
+                data = get_productividad(),
                 headers=cabeceras, verify=False
             )
             print(f"el estado es: {res.status_code}")
