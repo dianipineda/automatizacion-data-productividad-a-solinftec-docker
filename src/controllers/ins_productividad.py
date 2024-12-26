@@ -1,5 +1,5 @@
 from src.controllers.auth import auth_token
-from src.utils.database import get_productividad
+from src.utils.database_productividad import get_productividad
 import requests
 import json
 from urllib3.exceptions import InsecureRequestWarning, MaxRetryError

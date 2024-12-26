@@ -1,4 +1,3 @@
-
 __version_web__ = "1.0.0"
 __version_desktop__ = "1.0.0"
 #?comentar/descomentar Ejecución modo web
