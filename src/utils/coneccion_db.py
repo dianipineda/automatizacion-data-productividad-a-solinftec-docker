@@ -4,15 +4,12 @@ from datetime import datetime, timedelta
 import os
 import sys
 import subprocess
-print("**** Hasta aqui funciona")
-from src.ui_desktop.ui import hacienda_seleccionada
 
 # Variables
 parametro_ayer = datetime.today() + timedelta(days=-1)
 parametro_ayer_formateado =  parametro_ayer.strftime('%d/%m/%Y')
 parametro_ayer_formateado = "01/11/2024" # valor para pruebas. No hay valores despues de esta fecha al hacer la consulta.Nota: este valor no se puede comentar hasta que en la bbdd haya registros mas recientes
-hacienda = hacienda_seleccionada
-print("hacienda: ", hacienda)
+
 # Funciones
 def configurar_cliente_oracle():
     """

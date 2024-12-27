@@ -3,7 +3,7 @@ import json
 import os
 import socket
 from src.utils.coneccion_db import connection_db, configurar_cliente_oracle, parametro_ayer_formateado
-from src.ui_desktop.ui import hacienda_seleccionada, suerte_seleccionada
+# from src.ui_desktop.ui import hacienda_seleccionada, suerte_seleccionada
 
 
 # Variables
@@ -55,14 +55,15 @@ def query_get_productividad(parametro_ayer_formateado, faz, tal):
         tl.p3
     """
 
-def operacion_productividad(hacienda,suerte):
+def operacion_productividad(parametro_ayer_formateado,faz,tal):
     try:
         cursor = connection_db().cursor()
-        query= query_get_productividad(parametro_ayer_formateado, hacienda_seleccionada, suerte_seleccionada)
+        query= query_get_productividad(parametro_ayer_formateado, faz, tal)
+        print("query productividad:", query_get_productividad)
         cursor.execute(query, {
             'parametro_ayer_formateado':parametro_ayer_formateado,
-            'faz':hacienda_seleccionada,
-            'tal':suerte_seleccionada
+            'faz':faz,
+            'tal':tal
         })
         results = cursor.fetchall()
         if results == []:
@@ -87,11 +88,11 @@ def operacion_productividad(hacienda,suerte):
         except Exception as close_error:
             print(f"Error al cerrar recursos: {close_error}")
 def get_productividad():
-    hacienda = hacienda_seleccionada
-    suerte = suerte_seleccionada
-    operacion_productividad(hacienda,suerte)
+    hacienda = "106"
+    suerte = "14"
+    operacion_productividad(parametro_ayer_formateado,hacienda,suerte)
     data = []
-    for row in operacion_productividad(hacienda,suerte):
+    for row in operacion_productividad(parametro_ayer_formateado,hacienda,suerte):
         record = {
             "cd_unidade" : int(row[0]),
             "cd_operacao" : int(row[1]),

@@ -1,7 +1,6 @@
 import oracledb
-from src.utils.coneccion_db import connection_db, configurar_cliente_oracle, parametro_ayer_formateado, hacienda
+from src.utils.coneccion_db import connection_db, configurar_cliente_oracle, parametro_ayer_formateado
 # from src.ui_desktop.ui import hacienda_seleccionada
-
 
 # Variables
 # hacienda_seleccionada = "106" #TODO: El valor de esta variable, amarrarlo con un dropdown
@@ -29,8 +28,8 @@ def query_get_suertes(hacienda):
         ORDER BY
             vw.tal
     """
-
-def operacion_suertes(hacienda):
+#TODO: Implementar validaciones de get_productividad()
+def get_suertes(hacienda):
     try:
         cursor_suertes = connection_db().cursor()
         query_suertes = query_get_suertes(hacienda)
@@ -43,11 +42,8 @@ def operacion_suertes(hacienda):
             print("No hay resultados de la consulta realizada")
             return
         else:
+            # print("---------->", suertes)
             return suertes
     except oracledb.DatabaseError as e:
         print(f"Error en la base de datos en suertes: {e}")
-#TODO: Implementar validaciones de get_productividad()
-def get_suertes():  
-    print("..entró")
-    #TODO: Quedé aqui: ImportError: cannot import name 'hacienda'
-    operacion_suertes(hacienda)
+
