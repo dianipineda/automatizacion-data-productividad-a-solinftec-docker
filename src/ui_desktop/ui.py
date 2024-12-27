@@ -7,9 +7,10 @@ from src.utils.coneccion_db import parametro_ayer_formateado
 import oracledb
 
 hacienda_seleccionada = ""
-suerte_seleccionada = "14"
+suerte_seleccionada = ""
 def vista():
     global hacienda_seleccionada
+    global suerte_seleccionada
     window = tk.Tk()
     window.title('Productividad de Haciendas Suerte')
     window.geometry("296x265")
@@ -29,10 +30,6 @@ def vista():
         print("hacienda_seleccionada 2do llamado: ", hacienda_seleccionada)
         #TODO: Implementar validaciones de get_productividad()
         if hacienda_seleccionada:  # Si hay una hacienda seleccionada
-            # print("..entra a una hacienda seleccionada")
-            # print("tipo de dato de hacienda seleccionada: ", type(hacienda_seleccionada))
-            # print("valor de hacienda seleccionada: ", hacienda_seleccionada)
-            #TODO here
             hacienda_seleccionada = hacienda_seleccionada.strip("(),'\" ")
             suertes = get_suertes(parametro_ayer_formateado, hacienda_seleccionada)
             clicked_suertes.set("")  # Resetea el valor seleccionado
@@ -43,36 +40,32 @@ def vista():
                 )
         else:  # Si no hay una hacienda seleccionada, limpia el menú
             clicked_suertes.set("")
-            # dropMenu_suertes["menu"].delete(0, "end")
+            dropMenu_suertes["menu"].delete(0, "end")
 
+    def actualizar_suerte_seleccionada(*args):
+        global suerte_seleccionada
+        suerte_seleccionada = clicked_suertes.get()
+        suerte_seleccionada = suerte_seleccionada.strip("(),'\" ")
+        print("la suerte seleccionada es: ", suerte_seleccionada)
     # Dropdown Haciendas
     clicked_haciendas.trace_add("write", actualizar_suertes)  # Usando trace_add en lugar de trace
     dropMenu_haciendas = OptionMenu(window, clicked_haciendas, *get_haciendas())
     dropMenu_haciendas.grid(row=0, column=0)
 
     # Dropdown Suertes
+    clicked_suertes.trace_add("write", actualizar_suerte_seleccionada)
     dropMenu_suertes = OptionMenu(window, clicked_suertes, "")
     dropMenu_suertes.grid(row=0, column=1)
 
     # Botón de enviar
     def enviar():
-
-        # suerte_seleccionada = clicked_suertes.get()
-
         if not hacienda_seleccionada:
             messagebox.showerror("Error", "Seleccione una hacienda.")
             return
 
-        # if not suerte_seleccionada:
-        #     messagebox.showerror("Error", "Seleccione una suerte.")
-        #     return
-
-        # # Aquí iría la lógica de enviar con `ins_productividad`
-        # print(f"Hacienda seleccionada: {hacienda_seleccionada}")
-        # print(f"Suerte seleccionada: {suerte_seleccionada}")
-        # messagebox.showinfo("Éxito", "Datos enviados correctamente.")
-
-        #################################################################
+        if not suerte_seleccionada:
+            messagebox.showerror("Error", "Seleccione una suerte.")
+            return
         response = ins_productividad()
         if "error" in response:
             if response["error"] == "connection":
@@ -96,6 +89,7 @@ def vista():
                 messagebox.showerror("Error inesperado", f"Error inesperado: {response['details']}\nURL: {response['url']}")
         else:
             messagebox.showinfo("Éxito", f"Solicitud completada con éxito.\nEstado: {response['status_code']}")
+            # messagebox.showinfo("Éxito", "Datos enviados correctamente.")
 
     button = tk.Button(window, text="Enviar", command=enviar)
     button.grid(row=1, column=0)

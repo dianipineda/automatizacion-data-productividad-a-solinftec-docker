@@ -3,6 +3,7 @@ import json
 import os
 import socket
 from src.utils.coneccion_db import connection_db, configurar_cliente_oracle, parametro_ayer_formateado
+from src.utils.database_log_interfaces import query_get_logs, query_ins_logs
 
 """
 Nota: Trayecto de la DATA:
@@ -11,13 +12,14 @@ parametro_ayer_formateado: date que viene de connecion_db.py
 hacienda_seleccionada, suerte_seleccionada: str que viene de ui.py
 """
 
-# Variables
-# hacienda_seleccionada = "106" #TODO: El valor de esta variable, amarrarlo con un dropdown
-# suerte_seleccionada = "14" #TODO: El valor de esta variable, debe ser un filtro del valor seleccionado en faz, amarrarlo con un dropdown
-
 configurar_cliente_oracle()
        
 #TODO: consulta a tabla log sobre existencia de orden de servicio, si existe  fg_dml='A' de l contrario fg_dml='I'
+#TODO: de acuerdo a los resultados de query_get_logs, hacer dinamico el valor de fg_dml. Realizar una busqueda por los siguientes campos:
+    #   cd_ordem_servico -> clave 1
+    #   cd_fazenda -> clave 2
+    #   cd_zona -> clave 3
+#TODO: Todo lo que inicie por 0 en vw.tal, quitarlo. Detectado en caso: faz= 731, tal=060, ya que en la tabla join de tab_lq_dados, tal es 60, en lugar de 060
 # Funciones que retornan queries
 def query_get_productividad(fecha_referencia, hacienda, suerte):
     return """
@@ -94,6 +96,11 @@ def operacion_productividad(fecha_referencia,hacienda,suerte):
         except Exception as close_error:
             print(f"Error al cerrar recursos: {close_error}")
 def get_productividad():
+    """
+    propósito: data para insercion solinftec
+               data base para insercion en tabla LOG_INTERFACE
+    return json
+    """
     from src.ui_desktop.ui import hacienda_seleccionada, suerte_seleccionada
     operacion_productividad(parametro_ayer_formateado,hacienda_seleccionada,suerte_seleccionada)
     data = []
@@ -118,7 +125,9 @@ def get_productividad():
             "data": data
         }
         json_response = json.dumps(response, ensure_ascii=False)
-        print("El número de resultados es: ------------->: ", len(json.loads(json_response)))# imprime el numero de resultados
+        decoded_response = json.loads(json_response)
+        # print("El número de resultados es: ------------->: ", len(decoded_response["data"]))
+        # print("El valor de los resultados es: ", json_response)
         return json_response
     #TODO: insercion de registro en tabla log de registro insertado o actualizado con sus campos ID_PROCESO, Orden de servicio y Nuevo(estado A,I)
     else:
