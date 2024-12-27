@@ -1,12 +1,12 @@
 import oracledb
-from src.utils.coneccion_db import connection_db, configurar_cliente_oracle, parametro_ayer_formateado
-# from src.ui_desktop.ui import hacienda_seleccionada
+from src.utils.coneccion_db import connection_db, configurar_cliente_oracle
 
-# Variables
-# hacienda_seleccionada = "106" #TODO: El valor de esta variable, amarrarlo con un dropdown
-
+"""
+Nota: Trayecto de la DATA: 
+Aqui no se importa ninguna data
+"""
 configurar_cliente_oracle()
-def query_get_suertes(hacienda):
+def query_get_suertes(fecha_referencia,hacienda):
     return """
         SELECT DISTINCT
             vw.tal AS cd_zona
@@ -22,27 +22,27 @@ def query_get_suertes(hacienda):
                 codigo = 'CARTO_SOLI'
         ) tl ON tl.p2 = vw.tal
         WHERE
-            vw.data_ultcol BETWEEN TO_DATE(:parametro_ayer_formateado, 'DD/MM/YYYY') - 30 AND TO_DATE(:parametro_ayer_formateado, 'DD/MM/YYYY')
+            vw.data_ultcol BETWEEN TO_DATE(:fecha_referencia, 'DD/MM/YYYY') - 30 AND TO_DATE(:fecha_referencia, 'DD/MM/YYYY')
             AND vw.ton_mol > 0
             AND vw.faz = :hacienda
         ORDER BY
             vw.tal
     """
 #TODO: Implementar validaciones de get_productividad()
-def get_suertes(hacienda):
+def get_suertes(fecha_referencia,hacienda):
     try:
         cursor_suertes = connection_db().cursor()
-        query_suertes = query_get_suertes(hacienda)
+        query_suertes = query_get_suertes(fecha_referencia,hacienda)
+        print("query_suertes: ", query_suertes)
         cursor_suertes.execute(query_suertes, {
-            'parametro_ayer_formateado':parametro_ayer_formateado,
+            'fecha_referencia':fecha_referencia,
             'hacienda':hacienda
         })
         suertes = cursor_suertes.fetchall()
         if suertes == []:
-            print("No hay resultados de la consulta realizada")
+            print("No hay resultados de la consulta realizada. Consultando suertes")
             return
         else:
-            # print("---------->", suertes)
             return suertes
     except oracledb.DatabaseError as e:
         print(f"Error en la base de datos en suertes: {e}")

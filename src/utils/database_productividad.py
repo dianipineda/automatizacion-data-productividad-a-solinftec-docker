@@ -3,8 +3,13 @@ import json
 import os
 import socket
 from src.utils.coneccion_db import connection_db, configurar_cliente_oracle, parametro_ayer_formateado
-# from src.ui_desktop.ui import hacienda_seleccionada, suerte_seleccionada
 
+"""
+Nota: Trayecto de la DATA:
+data importada
+parametro_ayer_formateado: date que viene de connecion_db.py
+hacienda_seleccionada, suerte_seleccionada: str que viene de ui.py
+"""
 
 # Variables
 # hacienda_seleccionada = "106" #TODO: El valor de esta variable, amarrarlo con un dropdown
@@ -14,7 +19,7 @@ configurar_cliente_oracle()
        
 #TODO: consulta a tabla log sobre existencia de orden de servicio, si existe  fg_dml='A' de l contrario fg_dml='I'
 # Funciones que retornan queries
-def query_get_productividad(parametro_ayer_formateado, faz, tal):
+def query_get_productividad(fecha_referencia, hacienda, suerte):
     return """
     SELECT
         '1'                      cd_unidade,
@@ -43,11 +48,11 @@ def query_get_productividad(parametro_ayer_formateado, faz, tal):
     )       tl ON tl.p1 = vw.faz
             AND tl.p2 = vw.tal
     WHERE
-        vw.data_ultcol between TO_DATE(:parametro_ayer_formateado,'DD/MM/YYYY')-30 and TO_DATE(:parametro_ayer_formateado,'DD/MM/YYYY')
+        vw.data_ultcol between TO_DATE(:fecha_referencia,'DD/MM/YYYY')-30 and TO_DATE(:fecha_referencia,'DD/MM/YYYY')
         AND tl.p3 is not null
         AND vw.ton_mol > 0
-        AND vw.faz = :faz
-        AND vw.tal = :tal
+        AND vw.faz = :hacienda
+        AND vw.tal = :suerte
     ORDER BY
         vw.faz,
         vw.tal,
@@ -55,19 +60,20 @@ def query_get_productividad(parametro_ayer_formateado, faz, tal):
         tl.p3
     """
 
-def operacion_productividad(parametro_ayer_formateado,faz,tal):
+def operacion_productividad(fecha_referencia,hacienda,suerte):
     try:
         cursor = connection_db().cursor()
-        query= query_get_productividad(parametro_ayer_formateado, faz, tal)
-        print("query productividad:", query_get_productividad)
+        query= query_get_productividad(fecha_referencia,hacienda,suerte)
+        print("suerte:", suerte)
+        print("hacienda: ", hacienda)
         cursor.execute(query, {
-            'parametro_ayer_formateado':parametro_ayer_formateado,
-            'faz':faz,
-            'tal':tal
+            'fecha_referencia':fecha_referencia,
+            'hacienda':hacienda,
+            'suerte':suerte
         })
         results = cursor.fetchall()
         if results == []:
-            print("No hay resultados de la consulta realizada")
+            print("No hay resultados de la consulta realizada. Consultando productividad")
             return
         else:
             return results
@@ -88,11 +94,10 @@ def operacion_productividad(parametro_ayer_formateado,faz,tal):
         except Exception as close_error:
             print(f"Error al cerrar recursos: {close_error}")
 def get_productividad():
-    hacienda = "106"
-    suerte = "14"
-    operacion_productividad(parametro_ayer_formateado,hacienda,suerte)
+    from src.ui_desktop.ui import hacienda_seleccionada, suerte_seleccionada
+    operacion_productividad(parametro_ayer_formateado,hacienda_seleccionada,suerte_seleccionada)
     data = []
-    for row in operacion_productividad(parametro_ayer_formateado,hacienda,suerte):
+    for row in operacion_productividad(parametro_ayer_formateado,hacienda_seleccionada,suerte_seleccionada):
         record = {
             "cd_unidade" : int(row[0]),
             "cd_operacao" : int(row[1]),
