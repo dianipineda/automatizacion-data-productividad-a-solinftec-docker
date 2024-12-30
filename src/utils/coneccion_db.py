@@ -6,9 +6,8 @@ import sys
 import subprocess
 
 # Variables
-parametro_ayer = datetime.today() + timedelta(days=-1)
-parametro_ayer_formateado =  parametro_ayer.strftime('%d/%m/%Y')
-# parametro_ayer_formateado = "01/11/2024" # valor para pruebas. No hay valores despues de esta fecha al hacer la consulta.Nota: este valor no se puede comentar hasta que en la bbdd haya registros mas recientes
+# parametro_ayer = datetime.today() + timedelta(days=-1)
+# parametro_ayer_formateado =  parametro_ayer.strftime('%d/%m/%Y')
 
 # Funciones
 def configurar_cliente_oracle():

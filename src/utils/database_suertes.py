@@ -6,7 +6,7 @@ Nota: Trayecto de la DATA:
 Aqui no se importa ninguna data
 """
 configurar_cliente_oracle()
-def query_get_suertes(fecha_referencia,hacienda):
+def query_get_suertes(hacienda):
     return """
         SELECT DISTINCT
             vw.tal AS cd_zona
@@ -22,20 +22,19 @@ def query_get_suertes(fecha_referencia,hacienda):
                 codigo = 'CARTO_SOLI'
         ) tl ON tl.p2 = vw.tal
         WHERE
-            vw.data_ultcol BETWEEN TO_DATE(:fecha_referencia, 'DD/MM/YYYY') - 30 AND TO_DATE(:fecha_referencia, 'DD/MM/YYYY')
+            vw.data_ultcol between current_date-20 AND current_date
             AND vw.ton_mol > 0
             AND vw.faz = :hacienda
         ORDER BY
             vw.tal
     """
 #TODO: Implementar validaciones de get_productividad()
-def get_suertes(fecha_referencia,hacienda):
+def get_suertes(hacienda):
     try:
         cursor_suertes = connection_db().cursor()
-        query_suertes = query_get_suertes(fecha_referencia,hacienda)
-        print("query_suertes: ", query_suertes)
+        query_suertes = query_get_suertes(hacienda)
+        # print("query_suertes: ", query_suertes)
         cursor_suertes.execute(query_suertes, {
-            'fecha_referencia':fecha_referencia,
             'hacienda':hacienda
         })
         suertes = cursor_suertes.fetchall()

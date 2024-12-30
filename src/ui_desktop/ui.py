@@ -3,7 +3,6 @@ from tkinter import StringVar, messagebox, OptionMenu
 from src.controllers.ins_productividad import ins_productividad
 from src.utils.database_haciendas import get_haciendas
 from src.utils.database_suertes import get_suertes
-from src.utils.coneccion_db import parametro_ayer_formateado
 import oracledb
 
 hacienda_seleccionada = ""
@@ -27,11 +26,11 @@ def vista():
         global hacienda_seleccionada
         hacienda_seleccionada = clicked_haciendas.get()
 
-        print("hacienda_seleccionada 2do llamado: ", hacienda_seleccionada)
+        # print("hacienda_seleccionada 2do llamado: ", hacienda_seleccionada)
         #TODO: Implementar validaciones de get_productividad()
         if hacienda_seleccionada:  # Si hay una hacienda seleccionada
             hacienda_seleccionada = hacienda_seleccionada.strip("(),'\" ")
-            suertes = get_suertes(parametro_ayer_formateado, hacienda_seleccionada)
+            suertes = get_suertes(hacienda_seleccionada)
             clicked_suertes.set("")  # Resetea el valor seleccionado
             dropMenu_suertes["menu"].delete(0, "end")  # Limpia las opciones previas
             for suerte in suertes:
@@ -46,7 +45,7 @@ def vista():
         global suerte_seleccionada
         suerte_seleccionada = clicked_suertes.get()
         suerte_seleccionada = suerte_seleccionada.strip("(),'\" ")
-        print("la suerte seleccionada es: ", suerte_seleccionada)
+        # print("la suerte seleccionada es: ", suerte_seleccionada)
     # Dropdown Haciendas
     clicked_haciendas.trace_add("write", actualizar_suertes)  # Usando trace_add en lugar de trace
     dropMenu_haciendas = OptionMenu(window, clicked_haciendas, *get_haciendas())

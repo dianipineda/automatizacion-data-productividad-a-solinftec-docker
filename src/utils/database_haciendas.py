@@ -1,5 +1,5 @@
 import oracledb
-from src.utils.coneccion_db import connection_db, configurar_cliente_oracle, parametro_ayer_formateado
+from src.utils.coneccion_db import connection_db, configurar_cliente_oracle
 
 """
 Nota: Trayecto de la DATA:
@@ -7,7 +7,7 @@ data importada
 parametro_ayer_formateado: date que viene de connecion_db.py
 """
 configurar_cliente_oracle()
-def query_get_haciendas(fecha_referencia):
+def query_get_haciendas():
     return """
         SELECT DISTINCT
             vw.faz AS cd_fazenda
@@ -23,7 +23,7 @@ def query_get_haciendas(fecha_referencia):
                 codigo = 'CARTO_SOLI'
         ) tl ON tl.p1 = vw.faz
         WHERE
-            vw.data_ultcol BETWEEN TO_DATE(:fecha_referencia, 'DD/MM/YYYY') - 30 AND TO_DATE(:fecha_referencia, 'DD/MM/YYYY')
+            vw.data_ultcol BETWEEN current_date - 20 AND current_date
             AND tl.p3 IS NOT NULL
             AND vw.ton_mol > 0
         ORDER BY
@@ -34,10 +34,9 @@ def query_get_haciendas(fecha_referencia):
 def get_haciendas():
     try:         
         cursor_haciendas = connection_db().cursor()
-        query_haciendas = query_get_haciendas(parametro_ayer_formateado)
+        query_haciendas = query_get_haciendas()
         cursor_haciendas.execute(
-            query_haciendas,
-            {'fecha_referencia':parametro_ayer_formateado}
+            query_haciendas
         )
         haciendas = cursor_haciendas.fetchall()
         return haciendas
