@@ -3,6 +3,7 @@ from tkinter import StringVar, messagebox, OptionMenu
 from src.controllers.ins_productividad import ins_productividad
 from src.utils.database_haciendas import get_haciendas
 from src.utils.database_suertes import get_suertes
+from src.ui_desktop.common_styles import center_window
 import oracledb
 
 hacienda_seleccionada = ""
@@ -10,36 +11,39 @@ suerte_seleccionada = ""
 def vista():
     global hacienda_seleccionada
     global suerte_seleccionada
+    window_width = 296
+    window_height = 200
     window = tk.Tk()
-    window.title('Productividad de Haciendas Suerte')
-    window.geometry("296x265")
+    window.title('Inicio')
+    window.geometry(f"{window_width}x{window_height}")
     window.resizable(0, 0)
-
+    center_window(window,window_width,window_height)
 
     # Variables
     clicked_haciendas = StringVar()
     clicked_suertes = StringVar()
 
+    # fragmento de codigo que evita que se reviente si no hay ping al servidor
+    haciendas = get_haciendas()
+    if not haciendas:
+        return
     
-    # Callback para actualizar `dropMenu_suertes`
     def actualizar_suertes(*args):
         global hacienda_seleccionada
         hacienda_seleccionada = clicked_haciendas.get()
 
-        # print("hacienda_seleccionada 2do llamado: ", hacienda_seleccionada)
-        #TODO: Implementar validaciones de get_productividad()
-        if hacienda_seleccionada:  # Si hay una hacienda seleccionada
+        if hacienda_seleccionada:
             hacienda_seleccionada = hacienda_seleccionada.strip("(),'\" ")
             suertes = get_suertes(hacienda_seleccionada)
-            clicked_suertes.set("")  # Resetea el valor seleccionado
-            dropMenu_suertes["menu"].delete(0, "end")  # Limpia las opciones previas
+            clicked_suertes.set("")
+            dropDownMenu_suertes["menu"].delete(0, "end")
             for suerte in suertes:
-                dropMenu_suertes["menu"].add_command(
+                dropDownMenu_suertes["menu"].add_command(
                     label=suerte, command=lambda value=suerte: clicked_suertes.set(value)
                 )
-        else:  # Si no hay una hacienda seleccionada, limpia el menú
+        else:
             clicked_suertes.set("")
-            dropMenu_suertes["menu"].delete(0, "end")
+            dropDownMenu_suertes["menu"].delete(0, "end")
 
     def actualizar_suerte_seleccionada(*args):
         global suerte_seleccionada
@@ -48,22 +52,22 @@ def vista():
         # print("la suerte seleccionada es: ", suerte_seleccionada)
     # Dropdown Haciendas
     clicked_haciendas.trace_add("write", actualizar_suertes)  # Usando trace_add en lugar de trace
-    dropMenu_haciendas = OptionMenu(window, clicked_haciendas, *get_haciendas())
-    dropMenu_haciendas.grid(row=0, column=0)
+    dropDownMenu_haciendas = OptionMenu(window, clicked_haciendas, *get_haciendas())
+    dropDownMenu_haciendas.grid(row=0, column=0)
 
     # Dropdown Suertes
     clicked_suertes.trace_add("write", actualizar_suerte_seleccionada)
-    dropMenu_suertes = OptionMenu(window, clicked_suertes, "")
-    dropMenu_suertes.grid(row=0, column=1)
+    dropDownMenu_suertes = OptionMenu(window, clicked_suertes, "")
+    dropDownMenu_suertes.grid(row=0, column=1)
 
     # Botón de enviar
     def enviar():
         if not hacienda_seleccionada:
-            messagebox.showerror("Error", "Seleccione una hacienda.")
+            messagebox.showerror("Error", "Por favor seleccione una hacienda.")
             return
 
         if not suerte_seleccionada:
-            messagebox.showerror("Error", "Seleccione una suerte.")
+            messagebox.showerror("Error", "Por favor seleccione una suerte.")
             return
         response = ins_productividad()
         if "error" in response:

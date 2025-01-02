@@ -1,5 +1,8 @@
 import oracledb
 from src.utils.coneccion_db import connection_db, configurar_cliente_oracle
+import socket
+import os
+from tkinter import messagebox
 
 """
 Nota: Trayecto de la DATA: 
@@ -28,21 +31,37 @@ def query_get_suertes(hacienda):
         ORDER BY
             vw.tal
     """
-#TODO: Implementar validaciones de get_productividad()
 def get_suertes(hacienda):
     try:
-        cursor_suertes = connection_db().cursor()
-        query_suertes = query_get_suertes(hacienda)
+        connection = connection_db()  
+        if not connection:
+            raise Exception("No se pudo establecer la conexión a la base de datos.")       
+        cursor = connection.cursor()
+        query = query_get_suertes(hacienda)
         # print("query_suertes: ", query_suertes)
-        cursor_suertes.execute(query_suertes, {
+        cursor.execute(query, {
             'hacienda':hacienda
         })
-        suertes = cursor_suertes.fetchall()
+        suertes = cursor.fetchall()
         if suertes == []:
-            print("No hay resultados de la consulta realizada. Consultando suertes")
+            messagebox.showinfo("No hay resultados de 'Suertes' en la consulta realizada.")
             return
         else:
             return suertes
     except oracledb.DatabaseError as e:
-        print(f"Error en la base de datos en suertes: {e}")
+        messagebox.showerror("Error",f"Error en la base de datos en suertes: {e}")
+    except oracledb.InterfaceError as e:
+        messagebox.showerror("Error",f"No se pudo establecer una conexión con la base de datos. Verifica la configuración de red y el cliente Oracle: {e}")
+    except socket.gaierror as e:
+        messagebox.showerror("Error",f"Error de red: No se pudo resolver el host {os.getenv('DB_HOST')}. Detalles: {e}")
+    except Exception as e:
+        messagebox.showerror("Error",f"Ocurrió un error inesperado: {e}")
+    finally:
+        try:
+            if 'cursor' in locals() and cursor:
+                cursor.close()
+            if 'connection' in locals() and connection_db():
+                connection_db().close()
+        except Exception as close_error:
+            messagebox.showerror("Error",f"Error al cerrar recursos: {close_error}")
 

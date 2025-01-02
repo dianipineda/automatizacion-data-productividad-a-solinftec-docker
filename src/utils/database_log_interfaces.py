@@ -3,6 +3,7 @@ import json
 import os
 import socket
 from src.utils.coneccion_db import connection_db, configurar_cliente_oracle
+from tkinter import messagebox
 
 configurar_cliente_oracle()
 
@@ -21,27 +22,33 @@ def query_get_logs_by_fields(ordem_servico,tal):
     """
 def get_logs_by_fields(ordem_servico, tal):
     try:
-        cursor = connection_db().cursor()
+        connection = connection_db()  
+        if not connection:
+            raise Exception("No se pudo establecer la conexión a la base de datos.")       
+        cursor = connection.cursor() 
+        if not connection:
+            raise Exception("No se pudo establecer la conexión a la base de datos.")       
+        cursor = connection.cursor()
         query= query_get_logs_by_fields(ordem_servico,tal)
         cursor.execute(query, {
             'ordem_servico':ordem_servico,
             'tal':tal
         })
         results = cursor.fetchall()
-        print("results: ", results)
+        # print("results: ", results)
         if results == []:
-            print("No hay resultados de la consulta realizada. Consultando logs")
+            messagebox.showinfo("No hay resultados de 'Logs' en la consulta realizada.")
             return
         else:
             return results
     except oracledb.DatabaseError as e:
-        print(f"Error en la base de datos en query final: {e}")
+        messagebox.showerror("Error",f"Error en la base de datos en query final: {e}")
     except oracledb.InterfaceError as e:
-        print(f"No se pudo establecer una conexión con la base de datos. Verifica la configuración de red y el cliente Oracle: {e}")
+        messagebox.showerror("Error",f"No se pudo establecer una conexión con la base de datos. Verifica la configuración de red y el cliente Oracle: {e}")
     except socket.gaierror as e:
-        print(f"Error de red: No se pudo resolver el host {os.getenv('DB_HOST')}. Detalles: {e}")
+        messagebox.showerror("Error",f"Error de red: No se pudo resolver el host {os.getenv('DB_HOST')}. Detalles: {e}")
     except Exception as e:
-        print(f"Ocurrió un error inesperado: {e}")
+        messagebox.showerror("Error",f"Ocurrió un error inesperado: {e}")
     finally:
         try:
             if 'cursor' in locals() and cursor:
@@ -49,7 +56,7 @@ def get_logs_by_fields(ordem_servico, tal):
             if 'connection' in locals() and connection_db():
                 connection_db().close()
         except Exception as close_error:
-            print(f"Error al cerrar recursos: {close_error}")
+            messagebox.showerror("Error",f"Error al cerrar recursos: {close_error}")
 
 # ver en que parte del codigo se llamara esta funcion
 def query_ins_logs(secuencia):
@@ -58,11 +65,13 @@ def query_ins_logs(secuencia):
     VALUES ('00050001','PROD_SLTIF',:secuencia,sysdate,:ordem_servico,:fazenda,:zona,:tal,TO_CHAR(SYSDATE, 'YYMMDDHH24MI'))
     """
 def get_next_sequence():
-    conn = None
+    connection = None
     cursor = None
     try:
-        conn = connection_db() 
-        cursor = conn.cursor()
+        connection = connection_db()  
+        if not connection:
+            raise Exception("No se pudo establecer la conexión a la base de datos.")       
+        cursor = connection.cursor()
         
         # Consulta para obtener el valor máximo de SECUENCIA para el PROCESO específico
         cursor.execute("""
@@ -73,18 +82,31 @@ def get_next_sequence():
         
         max_secuencia = cursor.fetchone()[0]
         return max_secuencia + 1
+    except oracledb.DatabaseError as e:
+        messagebox.showerror("Error",f"Error en la base de datos en haciendas: {e}")
+    except oracledb.InterfaceError as e:
+        messagebox.showerror("Error",f"No se pudo establecer una conexión con la base de datos. Verifica la configuración de red y el cliente Oracle: {e}")
+    except socket.gaierror as e:
+        messagebox.showerror("Error",f"Error de red: No se pudo resolver el host {os.getenv('DB_HOST')}. Detalles: {e}")
+    except Exception as e:
+        messagebox.showerror("Error",f"Ocurrió un error inesperado: {e}")
     finally:
-        if cursor:
-            cursor.close()
-        if conn:
-            conn.close()
+        try:
+            if cursor:
+                cursor.close()
+            if connection:
+                connection.close()
+        except Exception as close_error:
+            messagebox.showerror("Error",f"Error al cerrar recursos: {close_error}")
 
 def ins_logs(ordem_servico, fazenda, zona,tal):
-    conn = None 
+    connection = None 
     cursor = None
     try:
-        conn = connection_db()
-        cursor = conn.cursor()
+        connection = connection_db()  
+        if not connection:
+            raise Exception("No se pudo establecer la conexión a la base de datos.")       
+        cursor = connection.cursor()
         next_secuencia = get_next_sequence()
         query= query_ins_logs(next_secuencia)
         cursor.execute(query, {
@@ -94,19 +116,24 @@ def ins_logs(ordem_servico, fazenda, zona,tal):
             'tal':tal,
             'secuencia':next_secuencia
         })
-        conn.commit()
-        print("Inserción exitosa.")
+        connection.commit()
+    except oracledb.DatabaseError as e:
+        messagebox.showerror("Error",f"Error en la base de datos en haciendas: {e}")
+    except oracledb.InterfaceError as e:
+        messagebox.showerror("Error",f"No se pudo establecer una conexión con la base de datos. Verifica la configuración de red y el cliente Oracle: {e}")
+    except socket.gaierror as e:
+        messagebox.showerror("Error",f"Error de red: No se pudo resolver el host {os.getenv('DB_HOST')}. Detalles: {e}")
     except Exception as e:
-        print("el error al insertar fue: ", e)
-        # if conn:
-        #     conn.rollback()
-        # print(f"Error al insertar el log: {e}")
+        messagebox.showerror("Error",f"Ocurrió un error inesperado: {e}")
 
     finally:
-        if cursor:
-            cursor.close()
-        if conn:
-            conn.close()
+        try:
+            if cursor:
+                cursor.close()
+            if connection:
+                connection.close()
+        except Exception as close_error:
+            messagebox.showerror("Error",f"Error al cerrar recursos: {close_error}")
 
 def query_update_logs():
     return """
@@ -116,25 +143,32 @@ def query_update_logs():
     WHERE CLAVE1 = :ordem_servico
     """
 def update_logs(ordem_servico):
-    conn = None
+    connection = None
     cursor = None
     try:
-        conn = connection_db()
-        cursor = conn.cursor()
+        connection = connection_db()  
+        if not connection:
+            raise Exception("No se pudo establecer la conexión a la base de datos.")       
+        cursor = connection.cursor()
         query= query_update_logs()
         cursor.execute(query, {
             'ordem_servico':ordem_servico
         })
-        conn.commit()
-        print("Actualización exitosa.")
+        connection.commit()
+    except oracledb.DatabaseError as e:
+        messagebox.showerror("Error",f"Error en la base de datos en haciendas: {e}")
+    except oracledb.InterfaceError as e:
+        messagebox.showerror("Error",f"No se pudo establecer una conexión con la base de datos. Verifica la configuración de red y el cliente Oracle: {e}")
+    except socket.gaierror as e:
+        messagebox.showerror("Error",f"Error de red: No se pudo resolver el host {os.getenv('DB_HOST')}. Detalles: {e}")
     except Exception as e:
-        # if conn:
-        #     conn.rollback()
-        # print(f"Error al actualizar el log: {e}")
-        print("el error al actualizar fue: ", e)
+        messagebox.showerror("Error",f"Ocurrió un error inesperado: {e}")
 
     finally:
-        if cursor:
-            cursor.close()
-        if conn:
-            conn.close()
+        try:
+            if cursor:
+                cursor.close()
+            if connection:
+                connection.close()
+        except Exception as close_error:
+            messagebox.showerror("Error",f"Error al cerrar recursos: {close_error}")

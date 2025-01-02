@@ -5,6 +5,7 @@ import json
 from urllib3.exceptions import InsecureRequestWarning, MaxRetryError
 from urllib3 import disable_warnings
 from urllib3 import disable_warnings
+from tkinter import messagebox
 
 disable_warnings(InsecureRequestWarning)
 
@@ -24,7 +25,7 @@ def ins_productividad():
                 data = get_productividad(),
                 headers=cabeceras, verify=False
             )
-            print(f"el estado es: {res.status_code}")
+            # print(f"el estado es: {res.status_code}")
             # print(f"el envio es: {res.json()}")
             res.raise_for_status()  # Este método lanza la excepción
             return {"status_code":res.status_code, "response": res.json()}
@@ -41,7 +42,7 @@ def ins_productividad():
                     "No se pudo establecer conexión con el servidor. "
                     "Por favor, verifica tu conexión a internet y la accesibilidad del servidor."
                 )
-            print("Error de conexión:", mensaje)
+            messagebox.showerror("Error de conexión:", mensaje)
             return {"error": "connection", "details": mensaje, "url": getattr(e.request, "url", "No disponible")}
 
         except requests.exceptions.Timeout as e:
@@ -55,7 +56,7 @@ def ins_productividad():
         except requests.exceptions.RequestException as e:
             return {"error": "unexpected", "details": str(e), "url": getattr(e.request, "url", "No disponible")}
     except MaxRetryError as e:
-        print(f"Max retries exceeded: {e}")
+        messagebox.showerror("Error",f"Max retries exceeded: {e}")
         return {"error": "max_retries", "details": str(e), "url": getattr(e.request, "url", "No disponible")}
     except requests.exceptions.ConnectionError as e:
             # Interpretar el error para hacerlo más amigable
@@ -69,7 +70,7 @@ def ins_productividad():
                     "No se pudo establecer conexión con el servidor. "
                     "Por favor, verifica tu conexión a internet y la accesibilidad del servidor."
                 )
-            print("Error de conexión:", mensaje)
+            messagebox.showerror("Error de conexión:", mensaje)
             return {"error": "connection", "details": mensaje, "url": getattr(e.request, "url", "No disponible")}
     except requests.exceptions.Timeout as e:
         return {"error": "timeout", "details": str(e), "url": getattr(e.request, "url", "No disponible")}
@@ -82,6 +83,6 @@ def ins_productividad():
     except requests.exceptions.RequestException as e:
         return {"error": "unexpected", "details": str(e), "url": getattr(e.request, "url", "No disponible")}
     except MaxRetryError as e:
-        print(f"Max retries exceeded: {e}")
+        messagebox.showerror("Error",f"Max retries exceeded: {e}")
         return {"error": "max_retries", "details": str(e), "url": getattr(e.request, "url", "No disponible")}
         

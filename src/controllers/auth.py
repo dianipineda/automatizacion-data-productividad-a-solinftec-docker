@@ -1,6 +1,6 @@
 import requests
 import json
-
+from tkinter import messagebox
 
 def auth_token():
     auth_data = {
@@ -21,4 +21,4 @@ def auth_token():
         token = res.json()['token']
         return token
     except requests.exceptions.HTTPError as err:
-        print(err)
+        messagebox.showerror(f"Error: {err}")

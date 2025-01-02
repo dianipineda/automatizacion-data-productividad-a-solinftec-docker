@@ -4,10 +4,7 @@ from datetime import datetime, timedelta
 import os
 import sys
 import subprocess
-
-# Variables
-# parametro_ayer = datetime.today() + timedelta(days=-1)
-# parametro_ayer_formateado =  parametro_ayer.strftime('%d/%m/%Y')
+from tkinter import messagebox
 
 # Funciones
 def configurar_cliente_oracle():
@@ -27,37 +24,31 @@ def configurar_cliente_oracle():
     oracle_client_path = os.getenv("ORACLE_CLIENT_PATH")
     try:
         oracledb.init_oracle_client(lib_dir=oracle_client_path)
-        print("Oracle Client initialized successfully.")
+        # print("Oracle Client initialized successfully.")
     except Exception as e:
-        print("Error initializing Oracle Client:", e)
+        messagebox.showerror("Error al inicializar el cliente de Oracle:", e)
 
-#TODO Funciones sobre ping (aun no usadas, TODO: probar su utilidad)
-def check_ping(host):
+def check_server(host):
     try:
-        # Ejecuta el comando ping
+        # Intenta hacer un ping al servidor
         response = subprocess.run(
-            ["ping", "-n", "1", host],  # Usa "-c" en lugar de "-n" si estás en Linux
+            ["ping", "-n", "1", host],  # Cambiar "-n" por "-c" en sistemas Unix
             stdout=subprocess.PIPE,
             stderr=subprocess.PIPE,
             text=True
         )
         return response.returncode == 0
     except Exception as e:
-        print(f"Error ejecutando ping: {e}")
+        messagebox.showerror("Error",f"Error ejecutando ping: {e}")
         return False
-def alert_no_ping(host):
-    print(f"ALERTA: No hay conexión al host {host}")
-def comprobacion_ping_bbdd():
-    while True:
-        if not check_ping(os.getenv("DB_HOST")):
-            alert_no_ping(os.getenv("DB_HOST"))
-        else:
-            # print(f'El host {os.getenv("DB_HOST")} es accesible.')
-            return
 
 def connection_db():
     # conexion a servidor
     try:
+        host = os.getenv("DB_HOST")
+        if not check_server(host):
+            messagebox.showinfo(f"Error: El servidor '{host}' no responde. Puede estar caído o inaccesible.")
+            return None
         return oracledb.connect(
             user=os.getenv("DB_USER"),
             password=os.getenv("DB_PASSWORD"),
@@ -65,5 +56,10 @@ def connection_db():
             port=os.getenv("DB_PORT"),
             sid=os.getenv("DB_SID")
         )
+    except oracledb.DatabaseError as db_error:
+        error_code, error_message = db_error.args
+        messagebox.showerror("Error",f"Error de la base de datos [{error_code}]: {error_message}")
+    except oracledb.InterfaceError:
+        messagebox.showerror("Error","No se pudo conectar al servidor. Verifique la configuración de red o el estado del servicio.")
     except Exception as e:
-        print(f"Error al conectar: {e}")
+        messagebox.showerror("Error",f"Error al inesperado al conectar con la Base de Datos: {e}")
