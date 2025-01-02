@@ -88,9 +88,7 @@ def operacion_productividad(hacienda,suerte):
                 connection_db().close()
         except Exception as close_error:
             print(f"Error al cerrar recursos: {close_error}")
-#TODO: la insercion y la actualizacion funcionan. Sin embargo:
-# en el caso de hacienda 311 y suerte 2 me actualiza 39 registros de tal = 1, pero no deberia porque la tabla de log_interface solo hay un registro 
-# depronto a lo anterior probar con buscar por hacienda, suerte y tal en lugar de los parametros anteriores
+
 def get_productividad():
     """
     propósito: data para insercion solinftec
@@ -98,10 +96,13 @@ def get_productividad():
     return json
     """
     from src.ui_desktop.ui import hacienda_seleccionada, suerte_seleccionada
-    operacion_productividad(hacienda_seleccionada,suerte_seleccionada)
+    # operacion_productividad(hacienda_seleccionada,suerte_seleccionada)
     data = []
     for row in operacion_productividad(hacienda_seleccionada,suerte_seleccionada):
+        print("ordem: ", int(row[2]))
+        print("tal: ",row[5])
         logs = get_logs_by_fields(int(row[2]),row[5])
+        print("logs: ", logs)
         if logs is None:
             fg_dml = 'I'
             record = {
@@ -136,9 +137,9 @@ def get_productividad():
                 }
         data.append(record)
         if fg_dml == 'I':
-            ins_logs(row[2],row[3],row[4],row[5])
+            ins_logs(int(row[2]),row[3],row[4],row[5])
         if fg_dml == 'A':
-            update_logs(row[2],row[3],row[4],row[5])
+            update_logs(row[2])
     if data:
         response = {
             "identifier": "produtividade",

@@ -28,11 +28,11 @@ def get_logs_by_fields(ordem_servico, tal):
             'tal':tal
         })
         results = cursor.fetchall()
+        print("results: ", results)
         if results == []:
             print("No hay resultados de la consulta realizada. Consultando logs")
             return
         else:
-            # print("results: ", results)
             return results
     except oracledb.DatabaseError as e:
         print(f"Error en la base de datos en query final: {e}")
@@ -55,7 +55,7 @@ def get_logs_by_fields(ordem_servico, tal):
 def query_ins_logs(secuencia):
     return """
     INSERT INTO USER_CARMELITA.LOG_INTERFACE (PLANTA,PROCESO,SECUENCIA,FECHA,CLAVE1,CLAVE2,CLAVE3,CLAVE4,CLAVE5)
-    VALUES ('00050001','PROD_SLTIF',:secuencia,sysdate,:ordem_servico,:fazenda,:zona,:tal,sysdate)
+    VALUES ('00050001','PROD_SLTIF',:secuencia,sysdate,:ordem_servico,:fazenda,:zona,:tal,TO_CHAR(SYSDATE, 'YYMMDDHH24MI'))
     """
 def get_next_sequence():
     conn = None
@@ -111,13 +111,11 @@ def ins_logs(ordem_servico, fazenda, zona,tal):
 def query_update_logs():
     return """
     UPDATE USER_CARMELITA.LOG_INTERFACE
-    SET CLAVE2 = :fazenda,
-        CLAVE3 = :zona,
-        CLAVE4 = :tal,
-        CLAVE5 = sysdate
+    SET CLAVE1 = :ordem_servico,
+        CLAVE5 = TO_CHAR(SYSDATE, 'YYMMDDHH24MI')
     WHERE CLAVE1 = :ordem_servico
     """
-def update_logs(ordem_servico, fazenda, zona, tal):
+def update_logs(ordem_servico):
     conn = None
     cursor = None
     try:
@@ -125,11 +123,7 @@ def update_logs(ordem_servico, fazenda, zona, tal):
         cursor = conn.cursor()
         query= query_update_logs()
         cursor.execute(query, {
-            'ordem_servico':ordem_servico,
-            'fazenda':fazenda,
-            'zona':zona,
-            'tal': tal
-
+            'ordem_servico':ordem_servico
         })
         conn.commit()
         print("Actualización exitosa.")
