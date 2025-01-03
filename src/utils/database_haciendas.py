@@ -44,7 +44,7 @@ def get_haciendas():
         )
         results = cursor.fetchall()
         if results == []:
-            messagebox.showinfo("No hay resultados de 'Productividad' en la consulta realizada.")
+            messagebox.showinfo("Información","No hay resultados de 'Productividad' en la consulta realizada.")
             return []
         else:
             return results

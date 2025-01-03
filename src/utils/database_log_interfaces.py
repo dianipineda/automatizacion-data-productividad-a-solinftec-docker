@@ -37,7 +37,6 @@ def get_logs_by_fields(ordem_servico, tal):
         results = cursor.fetchall()
         # print("results: ", results)
         if results == []:
-            messagebox.showinfo("No hay resultados de 'Logs' en la consulta realizada.")
             return
         else:
             return results
@@ -59,10 +58,10 @@ def get_logs_by_fields(ordem_servico, tal):
             messagebox.showerror("Error",f"Error al cerrar recursos: {close_error}")
 
 # ver en que parte del codigo se llamara esta funcion
-def query_ins_logs(secuencia):
+def query_ins_logs():
     return """
-    INSERT INTO USER_CARMELITA.LOG_INTERFACE (PLANTA,PROCESO,SECUENCIA,FECHA,CLAVE1,CLAVE2,CLAVE3,CLAVE4,CLAVE5)
-    VALUES ('00050001','PROD_SLTIF',:secuencia,sysdate,:ordem_servico,:fazenda,:zona,:tal,TO_CHAR(SYSDATE, 'YYMMDDHH24MI'))
+    INSERT INTO USER_CARMELITA.LOG_INTERFACE (PLANTA,PROCESO,SECUENCIA,FECHA,CLAVE1,CLAVE2,CLAVE3,CLAVE4,CLAVE5,ERROR)
+    VALUES ('00050001','PROD_SLTIF',:secuencia,sysdate,:ordem_servico,:fazenda,:zona,:tal,TO_CHAR(SYSDATE, 'YYMMDDHH24MI'),:full_row)
     """
 def get_next_sequence():
     connection = None
@@ -99,7 +98,7 @@ def get_next_sequence():
         except Exception as close_error:
             messagebox.showerror("Error",f"Error al cerrar recursos: {close_error}")
 
-def ins_logs(ordem_servico, fazenda, zona,tal):
+def ins_logs(ordem_servico, fazenda, zona,tal,full_row):
     connection = None 
     cursor = None
     try:
@@ -114,7 +113,8 @@ def ins_logs(ordem_servico, fazenda, zona,tal):
             'fazenda':fazenda,
             'zona':zona,
             'tal':tal,
-            'secuencia':next_secuencia
+            'secuencia':next_secuencia,
+            'full_row':full_row
         })
         connection.commit()
     except oracledb.DatabaseError as e:
@@ -138,11 +138,12 @@ def ins_logs(ordem_servico, fazenda, zona,tal):
 def query_update_logs():
     return """
     UPDATE USER_CARMELITA.LOG_INTERFACE
-    SET CLAVE1 = :ordem_servico,
-        CLAVE5 = TO_CHAR(SYSDATE, 'YYMMDDHH24MI')
-    WHERE CLAVE1 = :ordem_servico
+    SET CLAVE5 = TO_CHAR(SYSDATE, 'YYMMDDHH24MI'),
+        ERROR = :full_row
+    WHERE CLAVE2 = :fazenda
+    AND CLAVE3 = :zona
     """
-def update_logs(ordem_servico):
+def update_logs(fazenda, zona,full_row):
     connection = None
     cursor = None
     try:
@@ -150,9 +151,12 @@ def update_logs(ordem_servico):
         if not connection:
             raise Exception("No se pudo establecer la conexión a la base de datos.")       
         cursor = connection.cursor()
+        # Verificar los registros que serán afectados por la actualización
         query= query_update_logs()
         cursor.execute(query, {
-            'ordem_servico':ordem_servico
+            'fazenda':fazenda,
+            'zona':zona,
+            'full_row':full_row
         })
         connection.commit()
     except oracledb.DatabaseError as e:

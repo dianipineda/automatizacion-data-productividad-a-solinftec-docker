@@ -26,7 +26,7 @@ def ins_productividad():
                 headers=cabeceras, verify=False
             )
             # print(f"el estado es: {res.status_code}")
-            # print(f"el envio es: {res.json()}")
+            print(f"el envio es: {res.json()}")
             res.raise_for_status()  # Este método lanza la excepción
             return {"status_code":res.status_code, "response": res.json()}
             

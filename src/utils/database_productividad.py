@@ -12,51 +12,17 @@ Nota: Trayecto de la DATA:
 data importada
 hacienda_seleccionada, suerte_seleccionada: str que viene de ui.py
 """
-global fg_dml
+fg_dml = ""
+
+def set_fg_dml(value):
+    global fg_dml
+    fg_dml = value
+
+def get_fg_dml():
+    return fg_dml
+
 configurar_cliente_oracle()
        
-# Funciones que retornan queries
-# def query_get_productividad(hacienda, suerte):
-#     return """
-# SELECT
-#         '1'                      cd_unidade,
-#         '9249'                   cd_operacao,
-#         vw.faz||substr(vw.tal,1, INSTR(vw.tal,'.', 1, 1)-1  ) || substr(vw.tal,INSTR(vw.tal,'.', 1, 1)+1,1   )||vw.safra cd_ordem_servico,
-#         vw.faz                   cd_fazenda,
-#         vw.tal                   cd_zona,
-#         tl.p3                    cd_talhao,
-#         vw.data_ultcol           dt_inicial,
-#         vw.data_ultcol           dt_final,
-#         (vw.ton_est ) vl_producao_estimado,
-#         (vw.ton_mol ) vl_producao_total,
-#         'I'                      fg_dml
-#     FROM
-#     user_carmelita.historia vw
-#     LEFT JOIN (
-#         SELECT
-#             p1,
-#             p2,
-#             p3,
-#             p4
-#         FROM
-#             user_carmelita.tab_lq_dados
-#         WHERE
-#             codigo = 'CARTO_SOLI'
-#     )       tl ON tl.p1 = vw.faz
-#             AND tl.p2 = vw.tal
-#     WHERE
-#         vw.data_ultcol between current_date-20 and current_date
-#         and vw.faz = :hacienda
-#         and vw.tal = :suerte
-#         and tl.p3 is not null
-#         and vw.ton_mol > 0
-#         order BY
-#         vw.faz,
-#         vw.tal,
-#         vw.data_ultcol,
-#         tl.p3
-#     """
-
 def query_get_productividad(hacienda, suerte):
     return """
     SELECT
@@ -118,7 +84,8 @@ def query_get_productividad(hacienda, suerte):
             WHERE
                 codigo = 'CARTO_SOLI'
         )       tl ON tl.p1 = vw.faz
-                AND ( tl.p2 = substr(vw.tal,2,3) or tl.p2 = substr(vw.tal,3,3))
+                AND tl.p2 = vw.tal
+                --AND ( tl.p2 = substr(vw.tal,2,3) or tl.p2 = substr(vw.tal,3,3))
         WHERE
             vw.data_ultcol between   current_date-20 and current_date
             and vw.faz = :hacienda
@@ -127,7 +94,6 @@ def query_get_productividad(hacienda, suerte):
             and vw.ton_mol > 0
     """
 
-
 def operacion_productividad(hacienda,suerte):
     try:
         connection = connection_db()  
@@ -135,17 +101,16 @@ def operacion_productividad(hacienda,suerte):
             raise Exception("No se pudo establecer la conexión a la base de datos.")       
         cursor = connection.cursor()
         query= query_get_productividad(hacienda,suerte)
-        # print("suerte:", suerte)
-        # print("hacienda: ", hacienda)
         cursor.execute(query, {
             'hacienda':hacienda,
             'suerte':suerte
         })
         results = cursor.fetchall()
         if results == []:
-            messagebox.showinfo("No hay resultados de la consulta realizada. Consultando productividad")
+            messagebox.showinfo("Información","No hay resultados de 'Productividad en la consulta realizada.")
             return
         else:
+            # print("results: ", results)
             return results
     except oracledb.DatabaseError as e:
         messagebox.showerror("Error",f"Error en la base de datos en query final: {e}")
@@ -174,12 +139,10 @@ def get_productividad():
     # operacion_productividad(hacienda_seleccionada,suerte_seleccionada)
     data = []
     for row in operacion_productividad(hacienda_seleccionada,suerte_seleccionada):
-        print("ordem: ", int(row[2]))
-        print("tal: ",row[5])
+        # print("row: ", row)
         logs = get_logs_by_fields(int(row[2]),row[5])
-        print("logs: ", logs)
         if logs is None:
-            fg_dml = 'I'
+            set_fg_dml('I')
             record = {
                 "cd_unidade" : int(row[0]),
                 "cd_operacao" : int(row[1]),
@@ -191,30 +154,35 @@ def get_productividad():
                 "dt_final": row[7].strftime('%d/%m/%Y %H:%M:%S') if row[7] else None,
                 "vl_producao_estimado": float(row[8]),
                 "vl_producao_total": float(row[9]),
-                "fg_dml": fg_dml #row[10] #fg_dml='A' de l contrario fg_dml='I'
+                "fg_dml": get_fg_dml() #row[10] #fg_dml='A' de l contrario fg_dml='I'
             }
         else:
-            for item in logs:
-                fg_dml = 'A'
-                print("item: ",item)
-                record = {
-                    "cd_unidade" : int(row[0]),
-                    "cd_operacao" : int(row[1]),
-                    "cd_ordem_servico": int(row[2]),
-                    "cd_fazenda": row[3],
-                    "cd_zona": row[4],
-                    "cd_talhao": row[5],
-                    "dt_inicial": row[6].strftime('%d/%m/%Y %H:%M:%S') if row[6] else None,
-                    "dt_final": row[7].strftime('%d/%m/%Y %H:%M:%S') if row[7] else None,
-                    "vl_producao_estimado": float(row[8]),
-                    "vl_producao_total": float(row[9]),
-                    "fg_dml": fg_dml #row[10] #fg_dml='A' de l contrario fg_dml='I'
-                }
+            set_fg_dml('A')
+            record = {
+                "cd_unidade" : int(row[0]),
+                "cd_operacao" : int(row[1]),
+                "cd_ordem_servico": int(row[2]),
+                "cd_fazenda": row[3],
+                "cd_zona": row[4],
+                "cd_talhao": row[5],
+                "dt_inicial": row[6].strftime('%d/%m/%Y %H:%M:%S') if row[6] else None,
+                "dt_final": row[7].strftime('%d/%m/%Y %H:%M:%S') if row[7] else None,
+                "vl_producao_estimado": float(row[8]),
+                "vl_producao_total": float(row[9]),
+                "fg_dml": get_fg_dml() #row[10] #fg_dml='A' de l contrario fg_dml='I'
+            }
         data.append(record)
-        if fg_dml == 'I':
-            ins_logs(int(row[2]),row[3],row[4],row[5])
-        if fg_dml == 'A':
-            update_logs(row[2])
+        # registro= ', '.join(
+        #     str(item) if not isinstance(item, datetime) else item.strftime('%Y-%m-%d %H:%M:%S')
+        #     for item in row
+        # )
+        registro = json.dumps(record)
+        if get_fg_dml() == 'I':
+            ins_logs(int(row[2]),row[3],row[4],row[5],registro)
+            # print("fg_dml ins----> ", get_fg_dml())
+        if get_fg_dml() == 'A':
+            update_logs(row[3],row[4],registro)
+            # print("fg_dml edit----> ", get_fg_dml())
     if data:
         response = {
             "identifier": "produtividade",
@@ -226,6 +194,6 @@ def get_productividad():
         # print("El valor de los resultados es: ", json_response)
         return json_response
     else:
-        messagebox.showinfo("No se encontraron resultados para la consulta.")
+        messagebox.showinfo("Información", "No se encontraron resultados para la consulta.")
         return None
 

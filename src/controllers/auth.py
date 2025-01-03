@@ -21,4 +21,4 @@ def auth_token():
         token = res.json()['token']
         return token
     except requests.exceptions.HTTPError as err:
-        messagebox.showerror(f"Error: {err}")
+        messagebox.showerror("Error",f"Error: {err}")

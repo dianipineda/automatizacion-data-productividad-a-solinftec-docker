@@ -47,7 +47,7 @@ def connection_db():
     try:
         host = os.getenv("DB_HOST")
         if not check_server(host):
-            messagebox.showinfo(f"Error: El servidor '{host}' no responde. Puede estar caído o inaccesible.")
+            messagebox.showinfo("Error:",f"El servidor '{host}' no responde. Puede estar caído o inaccesible.")
             return None
         return oracledb.connect(
             user=os.getenv("DB_USER"),

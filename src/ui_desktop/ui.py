@@ -5,6 +5,7 @@ from src.utils.database_haciendas import get_haciendas
 from src.utils.database_suertes import get_suertes
 from src.ui_desktop.common_styles import center_window
 import oracledb
+from src.utils.database_productividad import get_fg_dml
 
 hacienda_seleccionada = ""
 suerte_seleccionada = ""
@@ -62,6 +63,9 @@ def vista():
 
     # Botón de enviar
     def enviar():
+        global fg_dml
+        global hacienda_seleccionada
+        global suerte_seleccionada
         if not hacienda_seleccionada:
             messagebox.showerror("Error", "Por favor seleccione una hacienda.")
             return
@@ -91,9 +95,17 @@ def vista():
             else:
                 messagebox.showerror("Error inesperado", f"Error inesperado: {response['details']}\nURL: {response['url']}")
         else:
-            messagebox.showinfo("Éxito", f"Solicitud completada con éxito.\nEstado: {response['status_code']}")
-            # messagebox.showinfo("Éxito", "Datos enviados correctamente.")
-
+            # print("fg_dml enviar()----> ", get_fg_dml())
+            if get_fg_dml() == 'I':
+                messagebox.showinfo("Éxito", f"Los datos fueron enviados correctamente para insertar.\nEstado: {response['status_code']}")
+            if get_fg_dml() == 'A':
+                messagebox.showinfo("Éxito", f"Los datos fueron enviados correctamente para actualizar.\nEstado: {response['status_code']}")
+        # Resetear los valores de los Dropdowns
+        clicked_haciendas.set("")
+        clicked_suertes.set("")
+        hacienda_seleccionada = ""
+        suerte_seleccionada = ""
+        dropDownMenu_suertes["menu"].delete(0, "end")  # Limpia el menú de suertes
     button = tk.Button(window, text="Enviar", command=enviar)
     button.grid(row=1, column=0)
 
