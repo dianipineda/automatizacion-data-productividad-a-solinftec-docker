@@ -32,7 +32,12 @@ def ins_productividad():
             #? Si el estado es 200 entonces que ejecute la funcion get_productividad
             res.raise_for_status()  # Este método lanza la excepción
             obtener_productividad((res.json()).get('code'))
-            return {"status_code":res.status_code, "response": res.json(), "get_response":(obtener_productividad((res.json()).get('code'))).get('status')}
+            return {
+                "status_code":res.status_code,
+                "response": res.json(),
+                "get_response":(obtener_productividad((res.json()).get('code'))).get('status'),
+                "data": get_productividad()
+            }
             
         except requests.exceptions.ConnectionError as e:
             # Interpretar el error para hacerlo más amigable

@@ -137,13 +137,11 @@ def get_productividad():
                 "fg_dml": get_fg_dml() #row[10] #fg_dml='A' de l contrario fg_dml='I'
             }
         data.append(record)
-        registro = json.dumps(record)
-        if get_fg_dml() == 'I':
-            ins_logs(int(row[2]),row[3],row[4],row[5],registro)
-            # print("fg_dml ins----> ", get_fg_dml())
-        if get_fg_dml() == 'A':
-            update_logs(row[3],row[4],registro)
-            # print("fg_dml edit----> ", get_fg_dml())
+        # registro = json.dumps(record)
+        # if get_fg_dml() == 'I':
+        #     ins_logs(int(row[2]),row[3],row[4],row[5],registro)
+        # if get_fg_dml() == 'A':
+        #     update_logs(row[3],row[4],registro)
     if data:
         response = {
             "identifier": "produtividade",

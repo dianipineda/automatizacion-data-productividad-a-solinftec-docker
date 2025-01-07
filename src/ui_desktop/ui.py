@@ -6,6 +6,8 @@ from src.utils.database_suertes import get_suertes
 from src.ui_desktop.common_styles import center_window
 import oracledb
 from src.utils.database_productividad import get_fg_dml
+from src.utils.database_log_interfaces import get_logs_by_fields, ins_logs, update_logs
+import json
 
 hacienda_seleccionada = ""
 suerte_seleccionada = ""
@@ -95,10 +97,19 @@ def vista():
             else:
                 messagebox.showerror("Error inesperado", f"Error inesperado: {response['details']}\nURL: {response['url']}")
         else:
-            # print(response)
-            # print("get res: ", response.get('get_response'))
+            # print(response.get("data"))
+            ###################################################################
+            data = json.loads((response.get("data")))
+            # print("data: ", data)
+            data2 = data.get("data")
+            # print("data2: ", data2)
             if response.get('get_response') in ['FULLY_PROCESSED', 'PROCESSED']:
+                #TODO : Quede aqui
+                # data2.append("status_solinftec": "FULLY_PROCESSED/PROCESSED")
+                registro = json.dumps(data2)
                 if get_fg_dml() == 'I':
+                    for row in data2:
+                        ins_logs(int(row[2]),row[3],row[4],row[5],registro)
                     messagebox.showinfo(
                         "Éxito",
                         f"Todos los datos fueron recibidos correctamente para ser procesados como Inserción por el sistema de Solinftec.\n"
@@ -106,6 +117,9 @@ def vista():
                         f"Estado de recepción de datos en servidor de Solinftec: {response.get('get_response')}"
                     )
                 if get_fg_dml() == 'A':
+                    for row in data2:
+                        print("row: ", row)
+                        update_logs(row[3],row[4],registro)
                     messagebox.showinfo(
                         "Éxito",
                         f"Todos los datos fueron recibidos correctamente para ser procesados como Actualización por el sistema de Solinftec.\n"
