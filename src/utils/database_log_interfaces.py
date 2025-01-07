@@ -47,7 +47,7 @@ def get_logs_by_fields(ordem_servico, tal):
     except socket.gaierror as e:
         messagebox.showerror("Error",f"Error de red: No se pudo resolver el host {os.getenv('DB_HOST')}. Detalles: {e}")
     except Exception as e:
-        messagebox.showerror("Error",f"Ocurrió un error inesperado: {e}")
+        messagebox.showerror("Error",f"Ocurrió un error inesperado en el filtro de logs: {e}")
     finally:
         try:
             if 'cursor' in locals() and cursor:
@@ -58,7 +58,7 @@ def get_logs_by_fields(ordem_servico, tal):
             messagebox.showerror("Error",f"Error al cerrar recursos: {close_error}")
 
 # ver en que parte del codigo se llamara esta funcion
-def query_ins_logs():
+def query_ins_logs(secuencia):
     return """
     INSERT INTO USER_CARMELITA.LOG_INTERFACE (PLANTA,PROCESO,SECUENCIA,FECHA,CLAVE1,CLAVE2,CLAVE3,CLAVE4,CLAVE5,ERROR)
     VALUES ('00050001','PROD_SLTIF',:secuencia,sysdate,:ordem_servico,:fazenda,:zona,:tal,TO_CHAR(SYSDATE, 'YYMMDDHH24MI'),:full_row)
@@ -88,7 +88,7 @@ def get_next_sequence():
     except socket.gaierror as e:
         messagebox.showerror("Error",f"Error de red: No se pudo resolver el host {os.getenv('DB_HOST')}. Detalles: {e}")
     except Exception as e:
-        messagebox.showerror("Error",f"Ocurrió un error inesperado: {e}")
+        messagebox.showerror("Error",f"Ocurrió un error inesperado al obtener la secuencia de logs: {e}")
     finally:
         try:
             if cursor:
@@ -124,7 +124,7 @@ def ins_logs(ordem_servico, fazenda, zona,tal,full_row):
     except socket.gaierror as e:
         messagebox.showerror("Error",f"Error de red: No se pudo resolver el host {os.getenv('DB_HOST')}. Detalles: {e}")
     except Exception as e:
-        messagebox.showerror("Error",f"Ocurrió un error inesperado: {e}")
+        messagebox.showerror("Error",f"Ocurrió un error inesperado en la insercion de los logs: {e}")
 
     finally:
         try:
@@ -166,7 +166,7 @@ def update_logs(fazenda, zona,full_row):
     except socket.gaierror as e:
         messagebox.showerror("Error",f"Error de red: No se pudo resolver el host {os.getenv('DB_HOST')}. Detalles: {e}")
     except Exception as e:
-        messagebox.showerror("Error",f"Ocurrió un error inesperado: {e}")
+        messagebox.showerror("Error",f"Ocurrió un error inesperado en la actualización de los logs: {e}")
 
     finally:
         try:

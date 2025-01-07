@@ -25,7 +25,7 @@ def query_get_haciendas():
                 codigo = 'CARTO_SOLI'
         ) tl ON tl.p1 = vw.faz
         WHERE
-            vw.data_ultcol BETWEEN current_date - 20 AND current_date
+            vw.data_ultcol BETWEEN current_date - 60 AND current_date
             AND tl.p3 IS NOT NULL
             AND vw.ton_mol > 0
         ORDER BY
@@ -44,7 +44,7 @@ def get_haciendas():
         )
         results = cursor.fetchall()
         if results == []:
-            messagebox.showinfo("Información","No hay resultados de 'Productividad' en la consulta realizada.")
+            messagebox.showinfo("Información","No hay resultados de 'Haciendas' en la consulta realizada.")
             return []
         else:
             return results
@@ -56,7 +56,8 @@ def get_haciendas():
     except socket.gaierror as e:
         messagebox.showerror("Error",f"Error de red: No se pudo resolver el host {os.getenv('DB_HOST')}. Detalles: {e}")
     except Exception as e:
-        messagebox.showerror("Error",f"Ocurrió un error inesperado: {e}")
+        #TODO: Quedé aquí error expected 2, got 1
+        messagebox.showerror("Error",f"Ocurrió un error inesperado en el filtro de haciendas: {e}")
     finally:
         try:
             if 'cursor' in locals() and cursor:

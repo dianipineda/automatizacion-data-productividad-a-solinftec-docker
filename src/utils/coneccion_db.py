@@ -5,7 +5,8 @@ import os
 import sys
 import subprocess
 from tkinter import messagebox
-
+import time
+from source.oracle_client import install_oracle_client
 # Funciones
 def configurar_cliente_oracle():
     """
@@ -23,6 +24,13 @@ def configurar_cliente_oracle():
     load_dotenv(dotenv_path=env_path)
     oracle_client_path = os.getenv("ORACLE_CLIENT_PATH")
     try:
+        try:
+            install_oracle_client()
+        except e:
+            messagebox.showerror("Error:", f"el error fue: {e}")
+        while not (os.path.exists(oracle_client_path) and os.path.isdir(oracle_client_path)):
+            # print(f"Esperando a que la carpeta '{carpeta}' sea creada...")
+            time.sleep(1)  # espera 1 segundo antes de volver a verificar
         oracledb.init_oracle_client(lib_dir=oracle_client_path)
         # print("Oracle Client initialized successfully.")
     except Exception as e:

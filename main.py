@@ -5,9 +5,12 @@ __version_desktop__ = "1.0.0"
 #?comentar/descomentar Ejecución modo escritorio
 from flask import Flask
 
-from source.oracle_client import install_oracle_client
+
 from src.controllers.ins_productividad import ins_productividad
 from src.ui_desktop.ui import vista
+from tkinter import messagebox
+import os
+import time
 
 app = Flask(__name__, template_folder="src/templates", static_folder="src/static")
 
@@ -23,8 +26,7 @@ app = Flask(__name__, template_folder="src/templates", static_folder="src/static
 #     return jsonify(response)
 
 #?comentar/descomentar Ejecución modo escritorio    
-def main_desktop():
-    install_oracle_client()
+def main_desktop():    
     vista()
 
 if __name__ == '__main__':

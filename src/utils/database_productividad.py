@@ -4,7 +4,7 @@ import os
 import socket
 from src.utils.coneccion_db import connection_db, configurar_cliente_oracle
 from src.utils.database_log_interfaces import get_logs_by_fields, ins_logs, update_logs
-from datetime import datetime
+from datetime import datetime, timedelta
 from tkinter import messagebox
 
 """
@@ -52,42 +52,7 @@ def query_get_productividad(hacienda, suerte):
         )       tl ON tl.p1 = vw.faz
                 AND tl.p2 = vw.tal
         WHERE
-            vw.data_ultcol between   current_date-20 and current_date
-            and vw.faz = :hacienda
-            and vw.tal = :suerte
-            and tl.p3 is not null
-            and vw.ton_mol > 0
-
-    UNION  
-    SELECT
-            '1'                      cd_unidade,
-            '9249'                   cd_operacao,
-            tl.p1||substr(tl.p2,1, INSTR(tl.p2,'.', 1, 1)-1  ) || substr(tl.p2,INSTR(vw.tal,'.', 1, 1)+1,1   )||vw.safra cd_ordem_servico,
-            tl.p1                   cd_fazenda,
-            tl.p2                   cd_zona,
-            tl.p3                    cd_talhao,
-            vw.data_ultcol           dt_inicial,
-            vw.data_ultcol           dt_final,
-            (vw.ton_est ) vl_producao_estimado,
-            (vw.ton_mol ) vl_producao_total,
-            'I'                      fg_dml
-        FROM
-        user_carmelita.historia vw
-        LEFT JOIN (
-            SELECT
-                p1,
-                p2,
-                p3,
-                p4
-            FROM
-                user_carmelita.tab_lq_dados
-            WHERE
-                codigo = 'CARTO_SOLI'
-        )       tl ON tl.p1 = vw.faz
-                AND tl.p2 = vw.tal
-                --AND ( tl.p2 = substr(vw.tal,2,3) or tl.p2 = substr(vw.tal,3,3))
-        WHERE
-            vw.data_ultcol between   current_date-20 and current_date
+            vw.data_ultcol between   current_date-60 and current_date
             and vw.faz = :hacienda
             and vw.tal = :suerte
             and tl.p3 is not null
@@ -119,7 +84,7 @@ def operacion_productividad(hacienda,suerte):
     except socket.gaierror as e:
         messagebox.showerror("Error",f"Error de red: No se pudo resolver el host {os.getenv('DB_HOST')}. Detalles: {e}")
     except Exception as e:
-        messagebox.showerror("Error",f"Ocurrió un error inesperado: {e}")
+        messagebox.showerror("Error",f"Ocurrió un error inesperado en la obtencion de la productividad por hacienda y por suerte: {e}")
     finally:
         try:
             if 'cursor' in locals() and cursor:
@@ -151,7 +116,7 @@ def get_productividad():
                 "cd_zona": row[4],
                 "cd_talhao": row[5],
                 "dt_inicial": row[6].strftime('%d/%m/%Y %H:%M:%S') if row[6] else None,
-                "dt_final": row[7].strftime('%d/%m/%Y %H:%M:%S') if row[7] else None,
+                "dt_final": (row[7] + timedelta(seconds=60)).strftime('%d/%m/%Y %H:%M:%S') if row[7] else None,
                 "vl_producao_estimado": float(row[8]),
                 "vl_producao_total": float(row[9]),
                 "fg_dml": get_fg_dml() #row[10] #fg_dml='A' de l contrario fg_dml='I'
@@ -166,7 +131,7 @@ def get_productividad():
                 "cd_zona": row[4],
                 "cd_talhao": row[5],
                 "dt_inicial": row[6].strftime('%d/%m/%Y %H:%M:%S') if row[6] else None,
-                "dt_final": row[7].strftime('%d/%m/%Y %H:%M:%S') if row[7] else None,
+                "dt_final": (row[7] + timedelta(seconds=60)).strftime('%d/%m/%Y %H:%M:%S') if row[7] else None,
                 "vl_producao_estimado": float(row[8]),
                 "vl_producao_total": float(row[9]),
                 "fg_dml": get_fg_dml() #row[10] #fg_dml='A' de l contrario fg_dml='I'

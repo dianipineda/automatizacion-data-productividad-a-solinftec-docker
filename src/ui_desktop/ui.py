@@ -20,48 +20,49 @@ def vista():
     window.resizable(0, 0)
     center_window(window,window_width,window_height)
 
-    # Variables
+    #? Variables
     clicked_haciendas = StringVar()
     clicked_suertes = StringVar()
 
-    # fragmento de codigo que evita que se reviente si no hay ping al servidor
+    #? fragmento de codigo que evita que se reviente si no hay ping al servidor
     haciendas = get_haciendas()
     if not haciendas:
-        return
+        print("hey")
+        # return
     
-    def actualizar_suertes(*args):
-        global hacienda_seleccionada
-        hacienda_seleccionada = clicked_haciendas.get()
+    # def actualizar_suertes(*args):
+    #     global hacienda_seleccionada
+    #     hacienda_seleccionada = clicked_haciendas.get()
 
-        if hacienda_seleccionada:
-            hacienda_seleccionada = hacienda_seleccionada.strip("(),'\" ")
-            suertes = get_suertes(hacienda_seleccionada)
-            clicked_suertes.set("")
-            dropDownMenu_suertes["menu"].delete(0, "end")
-            for suerte in suertes:
-                dropDownMenu_suertes["menu"].add_command(
-                    label=suerte, command=lambda value=suerte: clicked_suertes.set(value)
-                )
-        else:
-            clicked_suertes.set("")
-            dropDownMenu_suertes["menu"].delete(0, "end")
+    #     if hacienda_seleccionada:
+    #         hacienda_seleccionada = hacienda_seleccionada.strip("(),'\" ")
+    #         suertes = get_suertes(hacienda_seleccionada)
+    #         clicked_suertes.set("")
+    #         dropDownMenu_suertes["menu"].delete(0, "end")
+    #         for suerte in suertes:
+    #             dropDownMenu_suertes["menu"].add_command(
+    #                 label=suerte, command=lambda value=suerte: clicked_suertes.set(value)
+    #             )
+    #     else:
+    #         clicked_suertes.set("")
+    #         dropDownMenu_suertes["menu"].delete(0, "end")
 
-    def actualizar_suerte_seleccionada(*args):
-        global suerte_seleccionada
-        suerte_seleccionada = clicked_suertes.get()
-        suerte_seleccionada = suerte_seleccionada.strip("(),'\" ")
-        # print("la suerte seleccionada es: ", suerte_seleccionada)
-    # Dropdown Haciendas
-    clicked_haciendas.trace_add("write", actualizar_suertes)  # Usando trace_add en lugar de trace
-    dropDownMenu_haciendas = OptionMenu(window, clicked_haciendas, *get_haciendas())
-    dropDownMenu_haciendas.grid(row=0, column=0)
+    # def actualizar_suerte_seleccionada(*args):
+    #     global suerte_seleccionada
+    #     suerte_seleccionada = clicked_suertes.get()
+    #     suerte_seleccionada = suerte_seleccionada.strip("(),'\" ")
+    #     # print("la suerte seleccionada es: ", suerte_seleccionada)
+    #? Dropdown Haciendas
+    # clicked_haciendas.trace_add("write", actualizar_suertes)  # Usando trace_add en lugar de trace
+    # dropDownMenu_haciendas = OptionMenu(window, clicked_haciendas, *get_haciendas())
+    # dropDownMenu_haciendas.grid(row=0, column=0)
 
-    # Dropdown Suertes
-    clicked_suertes.trace_add("write", actualizar_suerte_seleccionada)
-    dropDownMenu_suertes = OptionMenu(window, clicked_suertes, "")
-    dropDownMenu_suertes.grid(row=0, column=1)
+    #? Dropdown Suertes
+    # clicked_suertes.trace_add("write", actualizar_suerte_seleccionada)
+    # dropDownMenu_suertes = OptionMenu(window, clicked_suertes, "")
+    # dropDownMenu_suertes.grid(row=0, column=1)
 
-    # Botón de enviar
+    #? Botón de enviar
     def enviar():
         global fg_dml
         global hacienda_seleccionada
@@ -105,7 +106,7 @@ def vista():
         clicked_suertes.set("")
         hacienda_seleccionada = ""
         suerte_seleccionada = ""
-        dropDownMenu_suertes["menu"].delete(0, "end")  # Limpia el menú de suertes
+        # dropDownMenu_suertes["menu"].delete(0, "end")  # Limpia el menú de suertes
     button = tk.Button(window, text="Enviar", command=enviar)
     button.grid(row=1, column=0)
 

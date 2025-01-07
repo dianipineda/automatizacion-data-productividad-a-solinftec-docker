@@ -25,7 +25,7 @@ def query_get_suertes(hacienda):
                 codigo = 'CARTO_SOLI'
         ) tl ON tl.p2 = vw.tal
         WHERE
-            vw.data_ultcol between current_date-20 AND current_date
+            vw.data_ultcol between current_date-60 AND current_date
             AND vw.ton_mol > 0
             AND vw.faz = :hacienda
         ORDER BY
@@ -44,7 +44,7 @@ def get_suertes(hacienda):
         })
         suertes = cursor.fetchall()
         if suertes == []:
-            messagebox.showinfo("Información","No hay resultados de 'Suertes' en la consulta realizada.")
+            messagebox.showinfo("No hay resultados de 'Suertes' en la consulta realizada.")
             return
         else:
             return suertes
@@ -55,7 +55,7 @@ def get_suertes(hacienda):
     except socket.gaierror as e:
         messagebox.showerror("Error",f"Error de red: No se pudo resolver el host {os.getenv('DB_HOST')}. Detalles: {e}")
     except Exception as e:
-        messagebox.showerror("Error",f"Ocurrió un error inesperado: {e}")
+        messagebox.showerror("Error",f"Ocurrió un error inesperado en la obtención de suertes por hacienda: {e}")
     finally:
         try:
             if 'cursor' in locals() and cursor:
