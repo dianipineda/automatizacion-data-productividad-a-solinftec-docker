@@ -27,40 +27,39 @@ def vista():
     #? fragmento de codigo que evita que se reviente si no hay ping al servidor
     haciendas = get_haciendas()
     if not haciendas:
-        print("hey")
-        # return
+        return
     
-    # def actualizar_suertes(*args):
-    #     global hacienda_seleccionada
-    #     hacienda_seleccionada = clicked_haciendas.get()
+    def actualizar_suertes(*args):
+        global hacienda_seleccionada
+        hacienda_seleccionada = clicked_haciendas.get()
 
-    #     if hacienda_seleccionada:
-    #         hacienda_seleccionada = hacienda_seleccionada.strip("(),'\" ")
-    #         suertes = get_suertes(hacienda_seleccionada)
-    #         clicked_suertes.set("")
-    #         dropDownMenu_suertes["menu"].delete(0, "end")
-    #         for suerte in suertes:
-    #             dropDownMenu_suertes["menu"].add_command(
-    #                 label=suerte, command=lambda value=suerte: clicked_suertes.set(value)
-    #             )
-    #     else:
-    #         clicked_suertes.set("")
-    #         dropDownMenu_suertes["menu"].delete(0, "end")
+        if hacienda_seleccionada:
+            hacienda_seleccionada = hacienda_seleccionada.strip("(),'\" ")
+            suertes = get_suertes(hacienda_seleccionada)
+            clicked_suertes.set("")
+            dropDownMenu_suertes["menu"].delete(0, "end")
+            for suerte in suertes:
+                dropDownMenu_suertes["menu"].add_command(
+                    label=suerte, command=lambda value=suerte: clicked_suertes.set(value)
+                )
+        else:
+            clicked_suertes.set("")
+            dropDownMenu_suertes["menu"].delete(0, "end")
 
-    # def actualizar_suerte_seleccionada(*args):
-    #     global suerte_seleccionada
-    #     suerte_seleccionada = clicked_suertes.get()
-    #     suerte_seleccionada = suerte_seleccionada.strip("(),'\" ")
-    #     # print("la suerte seleccionada es: ", suerte_seleccionada)
+    def actualizar_suerte_seleccionada(*args):
+        global suerte_seleccionada
+        suerte_seleccionada = clicked_suertes.get()
+        suerte_seleccionada = suerte_seleccionada.strip("(),'\" ")
+        # print("la suerte seleccionada es: ", suerte_seleccionada)
     #? Dropdown Haciendas
-    # clicked_haciendas.trace_add("write", actualizar_suertes)  # Usando trace_add en lugar de trace
-    # dropDownMenu_haciendas = OptionMenu(window, clicked_haciendas, *get_haciendas())
-    # dropDownMenu_haciendas.grid(row=0, column=0)
+    clicked_haciendas.trace_add("write", actualizar_suertes)  # Usando trace_add en lugar de trace
+    dropDownMenu_haciendas = OptionMenu(window, clicked_haciendas, *get_haciendas())
+    dropDownMenu_haciendas.grid(row=0, column=0)
 
     #? Dropdown Suertes
-    # clicked_suertes.trace_add("write", actualizar_suerte_seleccionada)
-    # dropDownMenu_suertes = OptionMenu(window, clicked_suertes, "")
-    # dropDownMenu_suertes.grid(row=0, column=1)
+    clicked_suertes.trace_add("write", actualizar_suerte_seleccionada)
+    dropDownMenu_suertes = OptionMenu(window, clicked_suertes, "")
+    dropDownMenu_suertes.grid(row=0, column=1)
 
     #? Botón de enviar
     def enviar():
@@ -96,11 +95,29 @@ def vista():
             else:
                 messagebox.showerror("Error inesperado", f"Error inesperado: {response['details']}\nURL: {response['url']}")
         else:
-            # print("fg_dml enviar()----> ", get_fg_dml())
-            if get_fg_dml() == 'I':
-                messagebox.showinfo("Éxito", f"Los datos fueron enviados correctamente para insertar.\nEstado: {response['status_code']}")
-            if get_fg_dml() == 'A':
-                messagebox.showinfo("Éxito", f"Los datos fueron enviados correctamente para actualizar.\nEstado: {response['status_code']}")
+            # print(response)
+            # print("get res: ", response.get('get_response'))
+            if response.get('get_response') in ['FULLY_PROCESSED', 'PROCESSED']:
+                if get_fg_dml() == 'I':
+                    messagebox.showinfo(
+                        "Éxito",
+                        f"Todos los datos fueron recibidos correctamente para ser procesados como Inserción por el sistema de Solinftec.\n"
+                        f"Estado de envio: {response['status_code']}\n"
+                        f"Estado de recepción de datos en servidor de Solinftec: {response.get('get_response')}"
+                    )
+                if get_fg_dml() == 'A':
+                    messagebox.showinfo(
+                        "Éxito",
+                        f"Todos los datos fueron recibidos correctamente para ser procesados como Actualización por el sistema de Solinftec.\n"
+                        f"Estado: {response['status_code']}\nEstado de recepción de datos en servidor de Solinftec: {response.get('get_response')}"
+                    )
+            #TODO
+            if response.get('get_response') == 'PENDING':
+                if get_fg_dml() == 'I':
+                    messagebox.showinfo(
+                        ""
+                    )
+
         # Resetear los valores de los Dropdowns
         clicked_haciendas.set("")
         clicked_suertes.set("")

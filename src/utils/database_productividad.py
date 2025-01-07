@@ -137,10 +137,6 @@ def get_productividad():
                 "fg_dml": get_fg_dml() #row[10] #fg_dml='A' de l contrario fg_dml='I'
             }
         data.append(record)
-        # registro= ', '.join(
-        #     str(item) if not isinstance(item, datetime) else item.strftime('%Y-%m-%d %H:%M:%S')
-        #     for item in row
-        # )
         registro = json.dumps(record)
         if get_fg_dml() == 'I':
             ins_logs(int(row[2]),row[3],row[4],row[5],registro)
