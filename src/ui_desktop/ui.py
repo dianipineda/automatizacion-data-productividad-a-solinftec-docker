@@ -96,20 +96,16 @@ def vista():
                 )
             else:
                 messagebox.showerror("Error inesperado", f"Error inesperado: {response['details']}\nURL: {response['url']}")
-        else:
-            # print(response.get("data"))
-            ###################################################################
+        else: # cuando el endpoint de envio con ins_productividad() fue Exitoso
             data = json.loads((response.get("data")))
-            # print("data: ", data)
             data2 = data.get("data")
-            # print("data2: ", data2)
+
+            #TODO : Quede aqui
             if response.get('get_response') in ['FULLY_PROCESSED', 'PROCESSED']:
-                #TODO : Quede aqui
-                # data2.append("status_solinftec": "FULLY_PROCESSED/PROCESSED")
-                registro = json.dumps(data2)
                 if get_fg_dml() == 'I':
                     for row in data2:
-                        ins_logs(int(row[2]),row[3],row[4],row[5],registro)
+                        # row.append("status_solinftec": "FULLY_PROCESSED/PROCESSED")
+                        ins_logs(int(row["cd_ordem_servico"]),row["cd_fazenda"],row["cd_zona"],row["cd_talhao"],row)
                     messagebox.showinfo(
                         "Éxito",
                         f"Todos los datos fueron recibidos correctamente para ser procesados como Inserción por el sistema de Solinftec.\n"
@@ -118,13 +114,16 @@ def vista():
                     )
                 if get_fg_dml() == 'A':
                     for row in data2:
-                        print("row: ", row)
-                        update_logs(row[3],row[4],registro)
+                        row["status_solinftec"] = "FULLY_PROCESSED/PROCESSED"
+                        registro=json.dumps(row)
+                        update_logs(row["cd_fazenda"],row["cd_zona"],registro)
                     messagebox.showinfo(
                         "Éxito",
                         f"Todos los datos fueron recibidos correctamente para ser procesados como Actualización por el sistema de Solinftec.\n"
                         f"Estado: {response['status_code']}\nEstado de recepción de datos en servidor de Solinftec: {response.get('get_response')}"
                     )
+            
+            
             #TODO
             if response.get('get_response') == 'PENDING':
                 if get_fg_dml() == 'I':
