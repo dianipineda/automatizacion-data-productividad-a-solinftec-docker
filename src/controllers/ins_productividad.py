@@ -1,5 +1,5 @@
 from src.controllers.auth import auth_token
-from src.utils.database_productividad import get_productividad
+from src.utils.database_productividad import get_productividad, del_productividad
 import requests
 import json
 from urllib3.exceptions import InsecureRequestWarning, MaxRetryError
@@ -10,16 +10,58 @@ from tkinter import messagebox
 
 disable_warnings(InsecureRequestWarning)
 
+def handle_request_error(error, url=None):
+    """Maneja los errores de solicitudes."""
+    if isinstance(error, MaxRetryError):
+        mensaje = "Max retries exceeded"
+        return {
+            "error": "max_retries",
+            "details": str(error),
+            "url": url or "No disponible"
+        }
+    elif isinstance(error, requests.exceptions.ConnectionError):
+        mensaje = (
+            "No se pudo establecer conexión con el servidor. "
+            "Por favor, verifica tu conexión a internet y la accesibilidad del servidor."
+        )
+        return {
+            "error": "connection",
+            "details": mensaje,
+            "url": url or "No disponible"
+        }
+    elif isinstance(error, requests.exceptions.Timeout):
+        return {
+            "error": "timeout",
+            "details": str(error),
+            "url": url or "No disponible"
+        }
+    elif isinstance(error, requests.exceptions.HTTPError):
+        return {
+            "error": "http",
+            "details": str(error),
+            "status_code": getattr(error.response, "status_code", "No disponible"),
+            "url": url or "No disponible"
+        }
+    else:
+        return {
+            "error": "unexpected",
+            "details": str(error),
+            "url": url or "No disponible"
+        }
+
+def get_headers():
+    return {
+        'Content-Type': 'application/json',
+        'Accept': '*/*',
+        'Accept-Encoding': 'gzip, deflate, br',
+        'Connection': 'keep-alive',
+        'X-Auth-Token': auth_token()
+    }
+
 def ins_productividad():
     try:
         # auth_token()
-        cabeceras = {
-            'Content-Type': 'application/json',
-            'Accept': '*/*',
-            'Accept-Encoding': 'gzip, deflate, br',
-            'Connection': 'keep-alive',
-            'X-Auth-Token': auth_token()
-        }
+        cabeceras = get_headers()
         try:
             res =  requests.post(
                 'https://scdi.saas-solinftec.com/push', 
@@ -38,72 +80,14 @@ def ins_productividad():
                 "get_response":(obtener_productividad((res.json()).get('code'))).get('status'),
                 "data": get_productividad()
             }
-            
-        except requests.exceptions.ConnectionError as e:
-            # Interpretar el error para hacerlo más amigable
-            if "Errno 11001" in str(e):
-                mensaje = (
-                    "No se pudo establecer conexión con el servidor debido a un problema de resolución de nombres. "
-                    "Verifica si el dominio 'scdi.saas-solinftec.com' es accesible desde la red."
-                )
-            else:
-                mensaje = (
-                    "No se pudo establecer conexión con el servidor. "
-                    "Por favor, verifica tu conexión a internet y la accesibilidad del servidor e intenta nuevamente."
-                )
-            messagebox.showerror("Error de conexión:", mensaje)
-            return {"error": "connection", "details": mensaje, "url": getattr(e.request, "url", "No disponible")}
-
-        except requests.exceptions.Timeout as e:
-            return {"error": "timeout", "details": str(e), "url": getattr(e.request, "url", "No disponible")}
-        except requests.exceptions.HTTPError as e:
-            return {
-                "error": "http",
-                "details": str(e),
-                "status_code": getattr(e.response, "status_code", "No disponible")
-            }
-        except requests.exceptions.RequestException as e:
-            return {"error": "unexpected", "details": str(e), "url": getattr(e.request, "url", "No disponible")}
-    except MaxRetryError as e:
-        messagebox.showerror("Error",f"Max retries exceeded: {e}")
-        return {"error": "max_retries", "details": str(e), "url": getattr(e.request, "url", "No disponible")}
-    except requests.exceptions.ConnectionError as e:
-            # Interpretar el error para hacerlo más amigable
-            if "Errno 11001" in str(e):
-                mensaje = (
-                    "No se pudo establecer conexión con el servidor debido a un problema de resolución de nombres. "
-                    "Verifica si el dominio 'scdi.saas-solinftec.com' es accesible desde la red."
-                )
-            else:
-                mensaje = (
-                    "No se pudo establecer conexión con el servidor. "
-                    "Por favor, verifica tu conexión a internet y la accesibilidad del servidor e intenta nuevamente."
-                )
-            messagebox.showerror("Error de conexión:", mensaje)
-            return {"error": "connection", "details": mensaje, "url": getattr(e.request, "url", "No disponible")}
-    except requests.exceptions.Timeout as e:
-        return {"error": "timeout", "details": str(e), "url": getattr(e.request, "url", "No disponible")}
-    except requests.exceptions.HTTPError as e:
-        return {
-            "error": "http",
-            "details": str(e),
-            "status_code": getattr(e.response, "status_code", "No disponible")
-        }
-    except requests.exceptions.RequestException as e:
-        return {"error": "unexpected", "details": str(e), "url": getattr(e.request, "url", "No disponible")}
-    except MaxRetryError as e:
-        messagebox.showerror("Error",f"Max retries exceeded: {e}")
-        return {"error": "max_retries", "details": str(e), "url": getattr(e.request, "url", "No disponible")}
+        except (requests.exceptions.RequestException, MaxRetryError) as e:
+            return handle_request_error(e, getattr(e.request, "url", "No disponible"))
+    except (requests.exceptions.RequestException, MaxRetryError) as e:
+       return handle_request_error(e, getattr(e.request, "url", "No disponible"))
         
 def obtener_productividad(codigo_envio):
     try:
-        cabeceras = {
-            'Content-Type': 'application/json',
-            'Accept': '*/*',
-            'Accept-Encoding': 'gzip, deflate, br',
-            'Connection': 'keep-alive',
-            'X-Auth-Token': auth_token()
-        }
+        cabeceras = get_headers()
         try:
             res = requests.get(
                 f'https://scdi.saas-solinftec.com/push_status/{codigo_envio}',
@@ -112,58 +96,31 @@ def obtener_productividad(codigo_envio):
             )
             res.raise_for_status()  # Este método lanza la excepción
             return {"get: status_code":res.status_code, "response": res.json(), "status":(res.json()).get('status')}
-        except requests.exceptions.ConnectionError as e:
-            # Interpretar el error para hacerlo más amigable
-            if "Errno 11001" in str(e):
-                mensaje = (
-                    "No se pudo establecer conexión con el servidor debido a un problema de resolución de nombres. "
-                    "Verifica si el dominio 'scdi.saas-solinftec.com' es accesible desde la red."
-                )
-            else:
-                mensaje = (
-                    "No se pudo establecer conexión con el servidor. "
-                    "Por favor, verifica tu conexión a internet y la accesibilidad del servidor e intenta nuevamente."
-                )
-            messagebox.showerror("Error de conexión:", mensaje)
-            return {"error": "connection", "details": mensaje, "url": getattr(e.request, "url", "No disponible")}
-
-        except requests.exceptions.Timeout as e:
-            return {"error": "timeout", "details": str(e), "url": getattr(e.request, "url", "No disponible")}
-        except requests.exceptions.HTTPError as e:
+        except (requests.exceptions.RequestException, MaxRetryError) as e:
+            return handle_request_error(e, getattr(e.request, "url", "No disponible"))
+    except (requests.exceptions.RequestException, MaxRetryError) as e:
+       return handle_request_error(e, getattr(e.request, "url", "No disponible"))
+    
+def del_productividad():
+    try:
+        # auth_token()
+        cabeceras = get_headers()
+        try:
+            res =  requests.post(
+                'https://scdi.saas-solinftec.com/push', 
+                data = del_productividad(),
+                headers=cabeceras, verify=False
+            )
+            #? Si el estado es 200 entonces que ejecute la funcion get_productividad
+            res.raise_for_status()  # Este método lanza la excepción
+            obtener_productividad((res.json()).get('code'))
             return {
-                "error": "http",
-                "details": str(e),
-                "status_code": getattr(e.response, "status_code", "No disponible")
+                "status_code":res.status_code,
+                "response": res.json(),
+                "get_response":(obtener_productividad((res.json()).get('code'))).get('status'),
+                "data": del_productividad()
             }
-        except requests.exceptions.RequestException as e:
-            return {"error": "unexpected", "details": str(e), "url": getattr(e.request, "url", "No disponible")}
-    except MaxRetryError as e:
-        messagebox.showerror("Error",f"Max retries exceeded: {e}")
-        return {"error": "max_retries", "details": str(e), "url": getattr(e.request, "url", "No disponible")}
-    except requests.exceptions.ConnectionError as e:
-            # Interpretar el error para hacerlo más amigable
-            if "Errno 11001" in str(e):
-                mensaje = (
-                    "No se pudo establecer conexión con el servidor debido a un problema de resolución de nombres. "
-                    "Verifica si el dominio 'scdi.saas-solinftec.com' es accesible desde la red."
-                )
-            else:
-                mensaje = (
-                    "No se pudo establecer conexión con el servidor. "
-                    "Por favor, verifica tu conexión a internet y la accesibilidad del servidor e intenta nuevamente."
-                )
-            messagebox.showerror("Error de conexión:", mensaje)
-            return {"error": "connection", "details": mensaje, "url": getattr(e.request, "url", "No disponible")}
-    except requests.exceptions.Timeout as e:
-        return {"error": "timeout", "details": str(e), "url": getattr(e.request, "url", "No disponible")}
-    except requests.exceptions.HTTPError as e:
-        return {
-            "error": "http",
-            "details": str(e),
-            "status_code": getattr(e.response, "status_code", "No disponible")
-        }
-    except requests.exceptions.RequestException as e:
-        return {"error": "unexpected", "details": str(e), "url": getattr(e.request, "url", "No disponible")}
-    except MaxRetryError as e:
-        messagebox.showerror("Error",f"Max retries exceeded: {e}")
-        return {"error": "max_retries", "details": str(e), "url": getattr(e.request, "url", "No disponible")}
+        except (requests.exceptions.RequestException, MaxRetryError) as e:
+            return handle_request_error(e, getattr(e.request, "url", "No disponible"))
+    except (requests.exceptions.RequestException, MaxRetryError) as e:
+       return handle_request_error(e, getattr(e.request, "url", "No disponible"))

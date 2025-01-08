@@ -119,7 +119,7 @@ def get_productividad():
                 "dt_final": (row[7] + timedelta(seconds=60)).strftime('%d/%m/%Y %H:%M:%S') if row[7] else None,
                 "vl_producao_estimado": float(row[8]),
                 "vl_producao_total": float(row[9]),
-                "fg_dml": get_fg_dml() #row[10] #fg_dml='A' de l contrario fg_dml='I'
+                "fg_dml": get_fg_dml()
             }
         else:
             set_fg_dml('A')
@@ -148,3 +148,39 @@ def get_productividad():
         messagebox.showinfo("Información", "No se encontraron resultados para la consulta.")
         return None
 
+def del_productividad():
+    """
+    propósito: data para insercion solinftec
+               data base para insercion en tabla LOG_INTERFACE
+    return json
+    """
+    from src.ui_desktop.ui import hacienda_seleccionada, suerte_seleccionada
+    # operacion_productividad(hacienda_seleccionada,suerte_seleccionada)
+    data = []
+    for row in operacion_productividad(hacienda_seleccionada,suerte_seleccionada):
+        set_fg_dml('E')
+        record = {
+            "cd_unidade" : int(row[0]),
+            "cd_operacao" : int(row[1]),
+            "cd_ordem_servico": int(row[2]),
+            "cd_fazenda": row[3],
+            "cd_zona": row[4],
+            "cd_talhao": row[5],
+            "dt_inicial": row[6].strftime('%d/%m/%Y %H:%M:%S') if row[6] else None,
+            "dt_final": (row[7] + timedelta(seconds=60)).strftime('%d/%m/%Y %H:%M:%S') if row[7] else None,
+            "vl_producao_estimado": float(row[8]),
+            "vl_producao_total": float(row[9]),
+            "fg_dml": get_fg_dml() 
+        }
+
+        data.append(record)
+    if data:
+        response = {
+            "identifier": "produtividade",
+            "data": data
+        }
+        json_response = json.dumps(response, ensure_ascii=False)
+        return json_response
+    else:
+        messagebox.showinfo("Información", "No se encontraron resultados para la consulta.")
+        return None
