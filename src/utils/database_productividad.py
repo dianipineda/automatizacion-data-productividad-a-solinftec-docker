@@ -134,23 +134,15 @@ def get_productividad():
                 "dt_final": (row[7] + timedelta(seconds=60)).strftime('%d/%m/%Y %H:%M:%S') if row[7] else None,
                 "vl_producao_estimado": float(row[8]),
                 "vl_producao_total": float(row[9]),
-                "fg_dml": get_fg_dml() #row[10] #fg_dml='A' de l contrario fg_dml='I'
+                "fg_dml": get_fg_dml() 
             }
         data.append(record)
-        # registro = json.dumps(record)
-        # if get_fg_dml() == 'I':
-        #     ins_logs(int(row[2]),row[3],row[4],row[5],registro)
-        # if get_fg_dml() == 'A':
-        #     update_logs(row[3],row[4],registro)
     if data:
         response = {
             "identifier": "produtividade",
             "data": data
         }
         json_response = json.dumps(response, ensure_ascii=False)
-        decoded_response = json.loads(json_response)
-        # print("El número de resultados es: ------------->: ", len(decoded_response["data"]))
-        # print("El valor de los resultados es: ", json_response)
         return json_response
     else:
         messagebox.showinfo("Información", "No se encontraron resultados para la consulta.")

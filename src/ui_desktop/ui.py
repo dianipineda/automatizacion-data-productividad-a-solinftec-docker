@@ -99,6 +99,10 @@ def vista():
         
         # Mapeo de estados a mensajes específicos
         mensajes_estado = {
+            #todo: Reunion con Joao para darle manejo al estado PENDING: Sucede que si un pending
+            #todo  se resuelve sin que yo lo sepa, no tengo forma de saber si dio error o si inserto 
+            #todo los datos. Como esto no quueda en mis logs , la proxima vez que vuelva a enviar datos
+            #todo  lo hara como insercion debido a que no tengo logs , y si estos ya estan en el sistema, me dara estado_solinftec: "ERROR"
             "PENDING": f"La integración aún se está ejecutando para la validación de los datos enviados en el proceso de {tipo_operacion[fg_dml]} por el sistema de Solinftec.\n\n"
                             f"Estado de envío: {estado_envio}\n"
                             f"Estado de recepción de datos en servidor de Solinftec: PENDING",
