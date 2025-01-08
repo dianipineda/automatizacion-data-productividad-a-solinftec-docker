@@ -63,6 +63,75 @@ def vista():
     dropDownMenu_suertes = OptionMenu(window, clicked_suertes, "")
     dropDownMenu_suertes.grid(row=0, column=1)
 
+    # funciones de envio
+    def mensaje_exitoso(fg_dml, estado_envio, estado_solinftec):
+        # Mapeo de tipos de operación a su descripción
+        tipo_operacion = {
+            'I': "Inserción",
+            'A': "Actualización"
+        }
+        
+        # Mapeo de estados a mensajes específicos
+        mensajes_estado = {
+            "FULLY_PROCESSED": f"Todos los datos fueron recibidos correctamente para ser procesados como {tipo_operacion[fg_dml]} por el sistema de Solinftec.\n\n"
+                            f"Estado de envío: {estado_envio}\n"
+                            f"Estado de recepción de datos en servidor de Solinftec: FULLY_PROCESSED",
+            "PROCESSED": f"Todos los datos fueron recibidos correctamente para ser procesados como {tipo_operacion[fg_dml]} por el sistema de Solinftec.\n\n"
+                        f"Estado de envío: {estado_envio}\n"
+                        f"Estado de recepción de datos en servidor de Solinftec: PROCESSED",
+            "PARTIALLY_PROCESSED": f"Algunos datos se recibieron correctamente y otros tenían errores en la {tipo_operacion[fg_dml]} por el sistema de Solinftec.\n\n"
+                                f"Estado de envío: {estado_envio}\n"
+                                f"Estado de recepción de datos en servidor de Solinftec: PARTIALLY_PROCESSED"
+        }
+        
+        # Validación de entrada
+        if fg_dml in tipo_operacion and estado_solinftec in mensajes_estado:
+            # tipo = tipo_operacion[fg_dml]
+            # mensaje = mensajes_estado[estado_solinftec].format(tipo_operacion=tipo, estado_solinftec=estado_solinftec)
+            messagebox.showinfo("Éxito", mensajes_estado[estado_solinftec])
+
+    def mensaje_erroneo(fg_dml, estado_envio,estado_solinftec):
+        # Mapeo de tipos de operación a su descripción
+        tipo_operacion = {
+            'I': "Inserción",
+            'A': "Actualización"
+        }
+        
+        # Mapeo de estados a mensajes específicos
+        mensajes_estado = {
+            "PENDING": f"La integración aún se está ejecutando para la validación de los datos enviados en el proceso de {tipo_operacion[fg_dml]} por el sistema de Solinftec.\n\n"
+                            f"Estado de envío: {estado_envio}\n"
+                            f"Estado de recepción de datos en servidor de Solinftec: PENDING",
+            "ERROR": f"Se encontraron errores en todos los datos enviados en el proceso de {tipo_operacion[fg_dml]} por el sistema de Solinftec.\n\n"
+                        f"Estado de envío: {estado_envio}\n"
+                        f"Estado de recepción de datos en servidor de Solinftec: ERROR"
+        }
+        
+        # Validación de entrada
+        if fg_dml in tipo_operacion and estado_solinftec in mensajes_estado:
+            # tipo = tipo_operacion[fg_dml]
+            # mensaje = mensajes_estado[estado_solinftec].format(tipo_operacion=tipo, estado_solinftec=estado_solinftec)
+            messagebox.showinfo("Error", mensajes_estado[estado_solinftec])
+
+    def manejo_solinftec(estado_solinftec, estado_envio,registros_productividad):
+        if estado_solinftec in ['FULLY_PROCESSED', 'PROCESSED','PARTIALLY_PROCESSED']:
+            if get_fg_dml() == 'I':
+                for row in registros_productividad:
+                    row["status_solinftec"] = estado_solinftec
+                    ins_logs(int(row["cd_ordem_servico"]),row["cd_fazenda"],row["cd_zona"],row["cd_talhao"],row)
+                mensaje_exitoso(get_fg_dml(),estado_envio,estado_solinftec)			
+                
+            if get_fg_dml() == 'A':
+                for row in registros_productividad:
+                    row["status_solinftec"] = estado_solinftec
+                    registro=json.dumps(row)
+                    update_logs(row["cd_fazenda"],row["cd_zona"],registro)
+                mensaje_exitoso(get_fg_dml(),estado_envio,estado_solinftec)	
+        if estado_solinftec in ['PENDING','ERROR']:
+            if get_fg_dml() == 'I':
+                mensaje_erroneo(get_fg_dml(),estado_envio,estado_solinftec)
+            if get_fg_dml() == 'A':
+                mensaje_erroneo(get_fg_dml(),estado_envio,estado_solinftec)
     #? Botón de enviar
     def enviar():
         global fg_dml
@@ -97,40 +166,11 @@ def vista():
             else:
                 messagebox.showerror("Error inesperado", f"Error inesperado: {response['details']}\nURL: {response['url']}")
         else: # cuando el endpoint de envio con ins_productividad() fue Exitoso
-            data = json.loads((response.get("data")))
-            data2 = data.get("data")
-
-            #TODO : Quede aqui
-            if response.get('get_response') in ['FULLY_PROCESSED', 'PROCESSED']:
-                if get_fg_dml() == 'I':
-                    for row in data2:
-                        # row.append("status_solinftec": "FULLY_PROCESSED/PROCESSED")
-                        ins_logs(int(row["cd_ordem_servico"]),row["cd_fazenda"],row["cd_zona"],row["cd_talhao"],row)
-                    messagebox.showinfo(
-                        "Éxito",
-                        f"Todos los datos fueron recibidos correctamente para ser procesados como Inserción por el sistema de Solinftec.\n"
-                        f"Estado de envio: {response['status_code']}\n"
-                        f"Estado de recepción de datos en servidor de Solinftec: {response.get('get_response')}"
-                    )
-                if get_fg_dml() == 'A':
-                    for row in data2:
-                        row["status_solinftec"] = "FULLY_PROCESSED/PROCESSED"
-                        registro=json.dumps(row)
-                        update_logs(row["cd_fazenda"],row["cd_zona"],registro)
-                    messagebox.showinfo(
-                        "Éxito",
-                        f"Todos los datos fueron recibidos correctamente para ser procesados como Actualización por el sistema de Solinftec.\n"
-                        f"Estado: {response['status_code']}\nEstado de recepción de datos en servidor de Solinftec: {response.get('get_response')}"
-                    )
-            
-            
-            #TODO
-            if response.get('get_response') == 'PENDING':
-                if get_fg_dml() == 'I':
-                    messagebox.showinfo(
-                        ""
-                    )
-
+            respuesta_json = json.loads((response.get("data")))
+            registros_productividad = respuesta_json.get("data")
+            estado_solinftec = response.get('get_response')
+            estado_envio = response['status_code']
+            manejo_solinftec(estado_solinftec,estado_envio,registros_productividad)
         # Resetear los valores de los Dropdowns
         clicked_haciendas.set("")
         clicked_suertes.set("")
