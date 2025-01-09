@@ -1,12 +1,11 @@
 import tkinter as tk
 from tkinter import StringVar, messagebox, OptionMenu
-from src.controllers.ins_productividad import ins_productividad, del_productividad
+from src.controllers.ins_productividad import ins_productividad, delete_productividad
 from src.utils.database_haciendas import get_haciendas
 from src.utils.database_suertes import get_suertes
 from src.ui_desktop.common_styles import center_window
-import oracledb
 from src.utils.database_productividad import get_fg_dml
-from src.utils.database_log_interfaces import get_logs_by_fields, ins_logs, update_logs
+from src.utils.database_log_interfaces import ins_logs, update_logs, del_logs
 import json
 
 hacienda_seleccionada = ""
@@ -112,12 +111,8 @@ def vista():
                 mensaje(get_fg_dml(),estado_envio,estado_solinftec)	
 
             if get_fg_dml() == 'E':
-                print("Entra a eliminar")
                 for row in registros_productividad:
-                    print("row: ", row)
-                    row["status_solinftec"] = estado_solinftec
-                    registro=json.dumps(row)
-                    update_logs("","","registro eliminado")
+                    del_logs(row["cd_ordem_servico"],row["cd_talhao"])
                 mensaje(get_fg_dml(),estado_envio,estado_solinftec)	
 
     #TODO: Refactorizar funciones enviar() y anular()
@@ -156,9 +151,13 @@ def vista():
                 messagebox.showerror("Error inesperado", f"Error inesperado: {response['details']}\nURL: {response['url']}")
         else: # cuando el endpoint de envio con ins_productividad() fue Exitoso
             respuesta_json = json.loads((response.get("data")))
+            print("en enviar(). respuesta_json", respuesta_json)
             registros_productividad = respuesta_json.get("data")
+            print("en enviar(). registros_productividad", registros_productividad)
             estado_solinftec = response.get('get_response')
+            print("en enviar(). estado_solinftec", estado_solinftec)
             estado_envio = response['status_code']
+            print("en enviar(). estado_envio",estado_envio)
             manejo_solinftec(estado_solinftec,estado_envio,registros_productividad)
         
         # Resetear los valores de los Dropdowns
@@ -178,7 +177,7 @@ def vista():
         if not suerte_seleccionada:
             messagebox.showerror("Error", "Por favor seleccione una suerte.")
             return
-        response = del_productividad()
+        response = delete_productividad()
         if "error" in response:
             if response["error"] == "connection":
                 messagebox.showerror("Error de conexión", f"Error de conexión: {response['details']}\nURL: {response['url']}")

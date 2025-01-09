@@ -150,30 +150,32 @@ def get_productividad():
 
 def del_productividad():
     """
-    propósito: data para insercion solinftec
-               data base para insercion en tabla LOG_INTERFACE
+    propósito: data para insercion solinftec (eliminacion)
+               data base para insercion en tabla LOG_INTERFACE (eliminacion)
     return json
     """
     from src.ui_desktop.ui import hacienda_seleccionada, suerte_seleccionada
     # operacion_productividad(hacienda_seleccionada,suerte_seleccionada)
     data = []
     for row in operacion_productividad(hacienda_seleccionada,suerte_seleccionada):
-        set_fg_dml('E')
-        record = {
-            "cd_unidade" : int(row[0]),
-            "cd_operacao" : int(row[1]),
-            "cd_ordem_servico": int(row[2]),
-            "cd_fazenda": row[3],
-            "cd_zona": row[4],
-            "cd_talhao": row[5],
-            "dt_inicial": row[6].strftime('%d/%m/%Y %H:%M:%S') if row[6] else None,
-            "dt_final": (row[7] + timedelta(seconds=60)).strftime('%d/%m/%Y %H:%M:%S') if row[7] else None,
-            "vl_producao_estimado": float(row[8]),
-            "vl_producao_total": float(row[9]),
-            "fg_dml": get_fg_dml() 
-        }
+        logs = get_logs_by_fields(int(row[2]),row[5])
+        if logs:
+            set_fg_dml('E')
+            record = {
+                "cd_unidade" : int(row[0]),
+                "cd_operacao" : int(row[1]),
+                "cd_ordem_servico": int(row[2]),
+                "cd_fazenda": row[3],
+                "cd_zona": row[4],
+                "cd_talhao": row[5],
+                "dt_inicial": row[6].strftime('%d/%m/%Y %H:%M:%S') if row[6] else None,
+                "dt_final": (row[7] + timedelta(seconds=60)).strftime('%d/%m/%Y %H:%M:%S') if row[7] else None,
+                "vl_producao_estimado": float(row[8]),
+                "vl_producao_total": float(row[9]),
+                "fg_dml": get_fg_dml() 
+            }
 
-        data.append(record)
+            data.append(record)
     if data:
         response = {
             "identifier": "produtividade",

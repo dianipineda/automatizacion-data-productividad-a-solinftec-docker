@@ -101,7 +101,7 @@ def obtener_productividad(codigo_envio):
     except (requests.exceptions.RequestException, MaxRetryError) as e:
        return handle_request_error(e, getattr(e.request, "url", "No disponible"))
     
-def del_productividad():
+def delete_productividad():
     try:
         # auth_token()
         cabeceras = get_headers()

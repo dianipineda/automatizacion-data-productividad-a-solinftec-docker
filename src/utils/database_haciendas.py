@@ -56,7 +56,6 @@ def get_haciendas():
     except socket.gaierror as e:
         messagebox.showerror("Error",f"Error de red: No se pudo resolver el host {os.getenv('DB_HOST')}. Detalles: {e}")
     except Exception as e:
-        #TODO: Quedé aquí error expected 2, got 1: Ocurrencia: cuando el servidor a pesar de estar levantado y el puerto abierto, problemas internos del servidor
         messagebox.showerror(
             "Error",
             f"Ocurrió un error inesperado en el filtro de haciendas: {e}\n"

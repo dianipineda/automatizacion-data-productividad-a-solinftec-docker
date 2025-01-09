@@ -143,6 +143,7 @@ def query_update_logs():
     WHERE CLAVE2 = :fazenda
     AND CLAVE3 = :zona
     """
+
 def update_logs(fazenda, zona,full_row):
     connection = None
     cursor = None
@@ -157,6 +158,51 @@ def update_logs(fazenda, zona,full_row):
             'fazenda':fazenda,
             'zona':zona,
             'full_row':full_row
+        })
+        connection.commit()
+    except oracledb.DatabaseError as e:
+        messagebox.showerror("Error",f"Error en la base de datos en haciendas: {e}")
+    except oracledb.InterfaceError as e:
+        messagebox.showerror("Error",f"No se pudo establecer una conexión con la base de datos. Verifica la configuración de red y el cliente Oracle: {e}")
+    except socket.gaierror as e:
+        messagebox.showerror("Error",f"Error de red: No se pudo resolver el host {os.getenv('DB_HOST')}. Detalles: {e}")
+    except Exception as e:
+        messagebox.showerror("Error",f"Ocurrió un error inesperado en la actualización de los logs: {e}")
+
+    finally:
+        try:
+            if cursor:
+                cursor.close()
+            if connection:
+                connection.close()
+        except Exception as close_error:
+            messagebox.showerror("Error",f"Error al cerrar recursos: {close_error}")
+
+def query_del_logs():
+    return """
+    UPDATE USER_CARMELITA.LOG_INTERFACE
+    SET CLAVE1 = NULL,
+        CLAVE2 = NULL,
+        CLAVE3 = NULL,
+        CLAVE4 = NULL,
+        CLAVE5 = NULL,
+        ERROR = NULL
+    WHERE CLAVE1 = :ordem_servico
+    AND CLAVE4 = :tal
+    """
+def del_logs(ordem_servico,tal):
+    connection = None
+    cursor = None
+    try:
+        connection = connection_db()  
+        if not connection:
+            raise Exception("No se pudo establecer la conexión a la base de datos.")       
+        cursor = connection.cursor()
+        # Verificar los registros que serán afectados por la actualización
+        query= query_del_logs()
+        cursor.execute(query, {
+            'ordem_servico':ordem_servico,
+            'tal':tal
         })
         connection.commit()
     except oracledb.DatabaseError as e:
