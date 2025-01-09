@@ -25,7 +25,7 @@ def query_get_haciendas():
                 codigo = 'CARTO_SOLI'
         ) tl ON tl.p1 = vw.faz
         WHERE
-            vw.data_ultcol BETWEEN current_date - 60 AND current_date
+            vw.data_ultcol BETWEEN current_date - 20 AND current_date
             AND tl.p3 IS NOT NULL
             AND vw.ton_mol > 0
         ORDER BY

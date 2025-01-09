@@ -1,5 +1,5 @@
 import tkinter as tk
-from tkinter import StringVar, messagebox, OptionMenu
+from tkinter import StringVar, messagebox, OptionMenu, Label
 from src.controllers.ins_productividad import ins_productividad, delete_productividad
 from src.utils.database_haciendas import get_haciendas
 from src.utils.database_suertes import get_suertes
@@ -52,15 +52,20 @@ def vista():
         suerte_seleccionada = clicked_suertes.get()
         suerte_seleccionada = suerte_seleccionada.strip("(),'\" ")
         # print("la suerte seleccionada es: ", suerte_seleccionada)
+    #TODO: trabajar en los estilos : posicionamiento de elementos 
     #? Dropdown Haciendas
+    label_haciendas = Label(window, text="Haciendas")
+    label_haciendas.grid(row=0, column=1)
     clicked_haciendas.trace_add("write", actualizar_suertes)  # Usando trace_add en lugar de trace
     dropDownMenu_haciendas = OptionMenu(window, clicked_haciendas, *get_haciendas())
-    dropDownMenu_haciendas.grid(row=0, column=0)
+    dropDownMenu_haciendas.grid(row=0, column=2)
 
     #? Dropdown Suertes
+    label_suertes = Label(window,text="Suertes")
+    label_suertes.grid(row=0, column=3)
     clicked_suertes.trace_add("write", actualizar_suerte_seleccionada)
     dropDownMenu_suertes = OptionMenu(window, clicked_suertes, "")
-    dropDownMenu_suertes.grid(row=0, column=1)
+    dropDownMenu_suertes.grid(row=0, column=4)
 
     # funciones de envio
     def mensaje(fg_dml, estado_envio, estado_solinftec):
@@ -177,11 +182,11 @@ def vista():
 
     #? Botón de enviar    
     button = tk.Button(window, text="Enviar", command=enviar)
-    button.grid(row=1, column=0)
+    button.grid(row=2, column=2)
 
     #? Botón Eliminar
     button = tk.Button(window, text="Anular", command=anular)
-    button.grid(row=1, column=1)   
+    button.grid(row=2, column=3)   
 
     window.mainloop()
 

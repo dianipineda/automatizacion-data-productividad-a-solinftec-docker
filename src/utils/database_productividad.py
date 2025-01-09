@@ -52,7 +52,7 @@ def query_get_productividad(hacienda, suerte):
         )       tl ON tl.p1 = vw.faz
                 AND tl.p2 = vw.tal
         WHERE
-            vw.data_ultcol between   current_date-60 and current_date
+            vw.data_ultcol between   current_date-20 and current_date
             and vw.faz = :hacienda
             and vw.tal = :suerte
             and tl.p3 is not null

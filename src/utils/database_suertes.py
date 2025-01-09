@@ -25,7 +25,7 @@ def query_get_suertes(hacienda):
                 codigo = 'CARTO_SOLI'
         ) tl ON tl.p2 = vw.tal
         WHERE
-            vw.data_ultcol between current_date-60 AND current_date
+            vw.data_ultcol between current_date-20 AND current_date
             AND vw.ton_mol > 0
             AND vw.faz = :hacienda
         ORDER BY
