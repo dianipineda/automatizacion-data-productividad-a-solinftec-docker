@@ -114,10 +114,8 @@ def vista():
                 for row in registros_productividad:
                     del_logs(row["cd_ordem_servico"],row["cd_talhao"])
                 mensaje(get_fg_dml(),estado_envio,estado_solinftec)	
-
-    #TODO: Refactorizar funciones enviar() y anular()
-
-    def enviar():
+		
+    def manejo_respuesta(accion):
         global fg_dml
         global hacienda_seleccionada
         global suerte_seleccionada
@@ -128,56 +126,16 @@ def vista():
         if not suerte_seleccionada:
             messagebox.showerror("Error", "Por favor seleccione una suerte.")
             return
-        response = ins_productividad()
-        if "error" in response:
-            if response["error"] == "connection":
-                messagebox.showerror("Error de conexión", f"Error de conexión: {response['details']}\nURL: {response['url']}")
-            elif response["error"] == "http":
-                messagebox.showerror(
-                    "Error HTTP",
-                    f"Error HTTP: {response['details']}\nCódigo de estado: {response['status_code']}"
-                )
-            elif response["error"] == "timeout":
-                messagebox.showerror(
-                    "Error de timeout",
-                    f"Error de timeout: {response['details']}\nURL: {response['url']}"
-                )
-            elif response["error"] == "max_retries":
-                messagebox.showerror(
-                    "Error de max_retries",
-                    f"Error de max_retries: {response['details']}\nURL: {response['url']}"
-                )
-            else:
-                messagebox.showerror("Error inesperado", f"Error inesperado: {response['details']}\nURL: {response['url']}")
-        else: # cuando el endpoint de envio con ins_productividad() fue Exitoso
-            respuesta_json = json.loads((response.get("data")))
-            print("en enviar(). respuesta_json", respuesta_json)
-            registros_productividad = respuesta_json.get("data")
-            print("en enviar(). registros_productividad", registros_productividad)
-            estado_solinftec = response.get('get_response')
-            print("en enviar(). estado_solinftec", estado_solinftec)
-            estado_envio = response['status_code']
-            print("en enviar(). estado_envio",estado_envio)
-            manejo_solinftec(estado_solinftec,estado_envio,registros_productividad)
         
-        # Resetear los valores de los Dropdowns
-        clicked_haciendas.set("")
-        clicked_suertes.set("")
-        hacienda_seleccionada = ""
-        suerte_seleccionada = ""
-    
-    def anular():
-        global fg_dml
-        global hacienda_seleccionada
-        global suerte_seleccionada
-        if not hacienda_seleccionada:
-            messagebox.showerror("Error", "Por favor seleccione una hacienda.")
+        # Determinar la función a usar según la acción
+        if accion == "anular":
+            response = delete_productividad()
+        elif accion == "enviar":
+            response = ins_productividad()
+        else:
+            messagebox.showerror("Error", "Acción no válida.")
             return
-
-        if not suerte_seleccionada:
-            messagebox.showerror("Error", "Por favor seleccione una suerte.")
-            return
-        response = delete_productividad()
+			
         if "error" in response:
             if response["error"] == "connection":
                 messagebox.showerror("Error de conexión", f"Error de conexión: {response['details']}\nURL: {response['url']}")
@@ -210,6 +168,12 @@ def vista():
         clicked_suertes.set("")
         hacienda_seleccionada = ""
         suerte_seleccionada = ""
+
+    def enviar():
+        manejo_respuesta("enviar")
+    
+    def anular():
+        manejo_respuesta("anular")
 
     #? Botón de enviar    
     button = tk.Button(window, text="Enviar", command=enviar)
