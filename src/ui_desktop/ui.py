@@ -53,19 +53,24 @@ def vista():
         suerte_seleccionada = suerte_seleccionada.strip("(),'\" ")
         # print("la suerte seleccionada es: ", suerte_seleccionada)
     #TODO: trabajar en los estilos : posicionamiento de elementos 
-    #? Dropdown Haciendas
+    #!     
+    label_a = Label(window, text="")
+    label_a.grid(row=0, column=1, sticky="W",padx=14)
+    #? Label y Dropdown Haciendas
     label_haciendas = Label(window, text="Haciendas")
-    label_haciendas.grid(row=0, column=1)
+    label_haciendas.grid(row=0, column=2, sticky="W")
     clicked_haciendas.trace_add("write", actualizar_suertes)  # Usando trace_add en lugar de trace
     dropDownMenu_haciendas = OptionMenu(window, clicked_haciendas, *get_haciendas())
-    dropDownMenu_haciendas.grid(row=0, column=2)
-
-    #? Dropdown Suertes
+    dropDownMenu_haciendas.grid(row=0, column=3, sticky="E")
+    #!  
+    label_b = Label(window, text="")
+    label_b.grid(row=0, column=4, sticky="W",padx=10)
+    #? Label y  Dropdown Suertes
     label_suertes = Label(window,text="Suertes")
-    label_suertes.grid(row=0, column=3)
+    label_suertes.grid(row=0, column=5, sticky="W")
     clicked_suertes.trace_add("write", actualizar_suerte_seleccionada)
     dropDownMenu_suertes = OptionMenu(window, clicked_suertes, "")
-    dropDownMenu_suertes.grid(row=0, column=4)
+    dropDownMenu_suertes.grid(row=0, column=6, sticky="E")
 
     # funciones de envio
     def mensaje(fg_dml, estado_envio, estado_solinftec):
@@ -182,11 +187,11 @@ def vista():
 
     #? Botón de enviar    
     button = tk.Button(window, text="Enviar", command=enviar)
-    button.grid(row=2, column=2)
+    button.grid(row=2, column=3, columnspan=2, pady=120, sticky="W")
 
     #? Botón Eliminar
     button = tk.Button(window, text="Anular", command=anular)
-    button.grid(row=2, column=3)   
+    button.grid(row=2, column=4, columnspan=2, pady=120, sticky="E")   
 
     window.mainloop()
 
