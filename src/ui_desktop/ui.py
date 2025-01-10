@@ -9,6 +9,7 @@ from src.utils.database_productividad import get_fg_dml
 from src.utils.database_log_interfaces import ins_logs, update_logs, del_logs
 import json
 from PIL import Image, ImageTk
+from src.ui_desktop.loader import Loader
 
 hacienda_seleccionada = ""
 suerte_seleccionada = ""
@@ -195,10 +196,25 @@ def vista():
         suerte_seleccionada = ""
 
     def enviar():
-        manejo_respuesta("enviar")
+        loader = Loader(window)
+        try:
+            loader.show()
+            manejo_respuesta("enviar")
+            loader.hide()
+        except Exception as e:
+            loader.hide()
+            messagebox.showerror("Error",f"Error inesperado al intentar enviar la solicitud: {e}")
     
     def anular():
-        manejo_respuesta("anular")
+        loader = Loader(window)
+        try:
+            loader.show()
+            manejo_respuesta("anular")
+            loader.hide()
+        except Exception as e:
+            loader.hide()
+            messagebox.showerror("Error",f"Error inesperado al intentar anular la solicitud: {e}")
+        
 
     # Imagen de fondo
     ancho = 180
