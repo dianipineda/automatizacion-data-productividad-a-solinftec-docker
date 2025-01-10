@@ -51,6 +51,7 @@ def vista():
             suerte_combobox["values"] = []
             clicked_suertes.set("")
 
+
     def actualizar_suerte_seleccionada(*args):
         global suerte_seleccionada
         suerte_seleccionada = clicked_suertes.get()
@@ -63,9 +64,13 @@ def vista():
     #? Label y Dropdown Haciendas
     label_haciendas = Label(window, text="Haciendas")
     label_haciendas.grid(row=0, column=2, sticky="W", pady=30)
-    clicked_haciendas.trace_add("write", actualizar_suertes)  # Usando trace_add en lugar de trace
-    hacienda_combobox = ttk.Combobox(window, textvariable=clicked_haciendas, values=haciendas, state="readonly", width=5)
+    hacienda_combobox = ttk.Combobox(window, textvariable=clicked_haciendas, values=haciendas, state="normal", width=5)
     hacienda_combobox.grid(row=0, column=3, sticky="E", pady=30)
+
+    # para texto de entrada
+    hacienda_combobox.bind("<Return>", lambda event: actualizar_suertes())
+    # para seleccion en el combobox
+    hacienda_combobox.bind("<<ComboboxSelected>>", lambda event: actualizar_suertes())
 
     #? espacio intermedio
     label_b = Label(window, text="")
@@ -75,7 +80,7 @@ def vista():
     label_suertes = Label(window,text="Suertes")
     label_suertes.grid(row=0, column=5, sticky="W", pady=30)
     clicked_suertes.trace_add("write", actualizar_suerte_seleccionada)
-    suerte_combobox = ttk.Combobox(window, textvariable=clicked_suertes, state="readonly", width=5)
+    suerte_combobox = ttk.Combobox(window, textvariable=clicked_suertes, state="normal", width=5)
     suerte_combobox.grid(row=0, column=6, sticky="E", pady=30)
 
     # funciones de envio

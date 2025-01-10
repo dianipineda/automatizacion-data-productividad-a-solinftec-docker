@@ -44,7 +44,7 @@ def get_suertes(hacienda):
         })
         suertes = cursor.fetchall()
         if suertes == []:
-            messagebox.showinfo("No hay resultados de 'Suertes' en la consulta realizada.")
+            messagebox.showinfo("Información","No hay resultados de 'Haciendas' en la consulta realizada.")
             return
         else:
             return suertes
