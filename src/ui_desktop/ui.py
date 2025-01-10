@@ -1,6 +1,6 @@
 from tkinter import ttk 
 import tkinter as tk
-from tkinter import StringVar, messagebox, OptionMenu, Label
+from tkinter import StringVar, messagebox, Label, Canvas
 from src.controllers.ins_productividad import ins_productividad, delete_productividad
 from src.utils.database_haciendas import get_haciendas
 from src.utils.database_suertes import get_suertes
@@ -8,6 +8,7 @@ from src.ui_desktop.common_styles import center_window
 from src.utils.database_productividad import get_fg_dml
 from src.utils.database_log_interfaces import ins_logs, update_logs, del_logs
 import json
+from PIL import Image, ImageTk
 
 hacienda_seleccionada = ""
 suerte_seleccionada = ""
@@ -21,6 +22,12 @@ def vista():
     window.geometry(f"{window_width}x{window_height}")
     window.resizable(0, 0)
     center_window(window,window_width,window_height)
+
+    # Icono
+    original_logo = Image.open("logo_carmelita.png")
+    resized_image = original_logo.resize((380,int(169.001182)))
+    window.icono = ImageTk.PhotoImage(resized_image)
+    window.iconphoto(True, window.icono)
 
     #? Variables
     clicked_haciendas = StringVar(value="")
@@ -38,43 +45,38 @@ def vista():
         if hacienda_seleccionada:
             hacienda_seleccionada = hacienda_seleccionada.strip("(),'\" ")
             suertes = get_suertes(hacienda_seleccionada)
-            clicked_suertes.set("")
-            dropDownMenu_suertes["menu"].delete(0, "end")
-            for suerte in suertes:
-                dropDownMenu_suertes["menu"].add_command(
-                    label=suerte, command=lambda value=suerte: clicked_suertes.set(value)
-                )
+            suerte_combobox["values"] = suertes  # Actualiza las opciones del Combobox
+            clicked_suertes.set("")  # Reinicia el Combobox de suertes
         else:
+            suerte_combobox["values"] = []
             clicked_suertes.set("")
-            dropDownMenu_suertes["menu"].delete(0, "end")
 
     def actualizar_suerte_seleccionada(*args):
         global suerte_seleccionada
         suerte_seleccionada = clicked_suertes.get()
         suerte_seleccionada = suerte_seleccionada.strip("(),'\" ")
-        # print("la suerte seleccionada es: ", suerte_seleccionada)
 
     # ? espacio inicial     
     label_a = Label(window, text="")
-    label_a.grid(row=0, column=1, sticky="W",padx=14)
+    label_a.grid(row=0, column=1, sticky="W",padx=12, pady=30)
 
     #? Label y Dropdown Haciendas
     label_haciendas = Label(window, text="Haciendas")
-    label_haciendas.grid(row=0, column=2, sticky="W")
+    label_haciendas.grid(row=0, column=2, sticky="W", pady=30)
     clicked_haciendas.trace_add("write", actualizar_suertes)  # Usando trace_add en lugar de trace
-    dropDownMenu_haciendas = OptionMenu(window, clicked_haciendas, *get_haciendas())
-    dropDownMenu_haciendas.grid(row=0, column=3, sticky="E")
+    hacienda_combobox = ttk.Combobox(window, textvariable=clicked_haciendas, values=haciendas, state="readonly", width=5)
+    hacienda_combobox.grid(row=0, column=3, sticky="E", pady=30)
 
     #? espacio intermedio
     label_b = Label(window, text="")
-    label_b.grid(row=0, column=4, sticky="W",padx=10)
+    label_b.grid(row=0, column=4, sticky="W",padx=10, pady=30)
 
     #? Label y  Dropdown Suertes
     label_suertes = Label(window,text="Suertes")
-    label_suertes.grid(row=0, column=5, sticky="W")
+    label_suertes.grid(row=0, column=5, sticky="W", pady=30)
     clicked_suertes.trace_add("write", actualizar_suerte_seleccionada)
-    dropDownMenu_suertes = OptionMenu(window, clicked_suertes, "")
-    dropDownMenu_suertes.grid(row=0, column=6, sticky="E")
+    suerte_combobox = ttk.Combobox(window, textvariable=clicked_suertes, state="readonly", width=5)
+    suerte_combobox.grid(row=0, column=6, sticky="E", pady=30)
 
     # funciones de envio
     def mensaje(fg_dml, estado_envio, estado_solinftec):
@@ -134,11 +136,15 @@ def vista():
         global hacienda_seleccionada
         global suerte_seleccionada
         if not hacienda_seleccionada:
-            messagebox.showerror("Error", "Por favor seleccione una hacienda.")
+            messagebox.showwarning("Advertencia", "Por favor seleccione una hacienda.")
             return
 
         if not suerte_seleccionada:
-            messagebox.showerror("Error", "Por favor seleccione una suerte.")
+            messagebox.showwarning("Advertencia", "Por favor seleccione una suerte.")
+            return
+        
+        if '.' in suerte_seleccionada:
+            messagebox.showwarning("Advertencia", "Las suertes que contienen '.' no son una ópción válida")
             return
         
         # Determinar la función a usar según la acción
@@ -189,13 +195,30 @@ def vista():
     def anular():
         manejo_respuesta("anular")
 
+    # Imagen de fondo
+    ancho = 180
+    alto = int(80.0531916)
+    try:
+        bg_image = Image.open("logo_carmelita.png")
+        bg_resized = bg_image.resize((ancho, alto))
+        bg_photo = ImageTk.PhotoImage(bg_resized)
+
+        # Canvas para la imagen de fondo
+        canvas = Canvas(window, width=ancho, height=alto)
+        canvas.grid(columnspan=7, rowspan=2)  # espacio que abarca de window
+        canvas.create_image(0, 0, image=bg_photo, anchor="nw")
+        canvas.image = bg_photo  # Evita que se recolecte el objeto por el garbage collector
+    except FileNotFoundError:
+        print("No se encontró el archivo de imagen de fondo.")
+
+
     #? Botón de enviar    
     button = tk.Button(window, text="Enviar", command=enviar, background="#006B37", foreground="#FFFFFF", font=('Montserrat', 10, "bold"))
-    button.grid(row=2, column=3, columnspan=2, pady=120, sticky="W")
+    button.grid(row=3, column=3, columnspan=2, pady=0, sticky="W")
 
     #? Botón Eliminar
     button = tk.Button(window, text="Anular", command=anular, background="#E5006D", foreground="#FFFFFF", font=('Montserrat', 10, "bold"))
-    button.grid(row=2, column=4, columnspan=2, pady=120, sticky="E")   
+    button.grid(row=3, column=4, columnspan=2, pady=0, sticky="E")   
 
     window.mainloop()
 
