@@ -1,3 +1,4 @@
+from tkinter import ttk 
 import tkinter as tk
 from tkinter import StringVar, messagebox, OptionMenu, Label
 from src.controllers.ins_productividad import ins_productividad, delete_productividad
@@ -22,8 +23,8 @@ def vista():
     center_window(window,window_width,window_height)
 
     #? Variables
-    clicked_haciendas = StringVar()
-    clicked_suertes = StringVar()
+    clicked_haciendas = StringVar(value="")
+    clicked_suertes = StringVar(value="")
 
     #? fragmento de codigo que evita que se reviente si no hay ping al servidor
     haciendas = get_haciendas()
@@ -52,19 +53,22 @@ def vista():
         suerte_seleccionada = clicked_suertes.get()
         suerte_seleccionada = suerte_seleccionada.strip("(),'\" ")
         # print("la suerte seleccionada es: ", suerte_seleccionada)
-    #TODO: trabajar en los estilos : posicionamiento de elementos 
-    #!     
+
+    # ? espacio inicial     
     label_a = Label(window, text="")
     label_a.grid(row=0, column=1, sticky="W",padx=14)
+
     #? Label y Dropdown Haciendas
     label_haciendas = Label(window, text="Haciendas")
     label_haciendas.grid(row=0, column=2, sticky="W")
     clicked_haciendas.trace_add("write", actualizar_suertes)  # Usando trace_add en lugar de trace
     dropDownMenu_haciendas = OptionMenu(window, clicked_haciendas, *get_haciendas())
     dropDownMenu_haciendas.grid(row=0, column=3, sticky="E")
-    #!  
+
+    #? espacio intermedio
     label_b = Label(window, text="")
     label_b.grid(row=0, column=4, sticky="W",padx=10)
+
     #? Label y  Dropdown Suertes
     label_suertes = Label(window,text="Suertes")
     label_suertes.grid(row=0, column=5, sticky="W")
@@ -186,11 +190,11 @@ def vista():
         manejo_respuesta("anular")
 
     #? Botón de enviar    
-    button = tk.Button(window, text="Enviar", command=enviar)
+    button = tk.Button(window, text="Enviar", command=enviar, background="#006B37", foreground="#FFFFFF", font=('Montserrat', 10, "bold"))
     button.grid(row=2, column=3, columnspan=2, pady=120, sticky="W")
 
     #? Botón Eliminar
-    button = tk.Button(window, text="Anular", command=anular)
+    button = tk.Button(window, text="Anular", command=anular, background="#E5006D", foreground="#FFFFFF", font=('Montserrat', 10, "bold"))
     button.grid(row=2, column=4, columnspan=2, pady=120, sticky="E")   
 
     window.mainloop()
