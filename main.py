@@ -1,11 +1,7 @@
-__version_web__ = "1.0.0"
-__version_desktop__ = "1.0.0"
 #?comentar/descomentar Ejecución modo web
 # from flask import Flask, jsonify, render_template
 #?comentar/descomentar Ejecución modo escritorio
 from flask import Flask
-
-
 from src.controllers.ins_productividad import ins_productividad
 from src.ui_desktop.ui import vista
 from tkinter import messagebox
