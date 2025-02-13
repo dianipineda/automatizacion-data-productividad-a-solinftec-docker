@@ -2,8 +2,8 @@ import tkinter as tk
 from src.ui_desktop.common_styles import center_window
 
 class Loader(tk.Toplevel):
-    def __init__(self, parent):
-        super().__init__(parent)
+    def __init__(self):
+        super().__init__()
         self.geometry("400x200")
         self.title("Cargando...")
         self.label = tk.Label(self, text="Cargando, por favor espere...")
@@ -23,9 +23,12 @@ class Loader(tk.Toplevel):
         pass  # Previene que se cierre el loader manualmente
 
     def show(self):
-        self.deiconify()  # Muestra la ventana
-        self.grab_set()    # Bloquea la ventana principal
-
+        """Muestra la ventana de carga y bloquea la interacción con la ventana principal"""
+        self.deiconify()  # Muestra la ventana si está oculta
+        self.update_idletasks()  # 🔹 Fuerza la actualización de la interfaz
+        self.grab_set()  # 🔹 Bloquea la interacción con otras ventanas
+        self.update()  # 🔹 Refresca la ventana inmediatamente  
     def hide(self):
-        self.grab_release()  # Libera la ventana principal
-        self.withdraw()      # Oculta la ventana
+        """Oculta la ventana de carga y libera la interacción con la ventana principal"""
+        self.grab_release()  
+        self.withdraw()      

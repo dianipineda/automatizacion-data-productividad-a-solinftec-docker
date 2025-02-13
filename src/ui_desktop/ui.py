@@ -1,31 +1,37 @@
+import os
 from tkinter import ttk 
 import tkinter as tk
 from tkinter import StringVar, messagebox, Label, Canvas
+
+from dotenv import load_dotenv
+from metadata import VERSION_DESKTOP
+from src.config.constants import ABS_PATH_BG_WINDOW, ABS_PATH_ICON_WINDOW, BIG_FONT, FONT, SMALL_FONT, WINDOW_HEIGHT, WINDOW_WIDTH
 from src.controllers.ins_productividad import ins_productividad, delete_productividad
 from src.utils.database_haciendas import get_haciendas
 from src.utils.database_suertes import get_suertes
-from src.ui_desktop.common_styles import center_window
+from src.ui_desktop.common_styles import center_window, set_style_iterable_obj, set_styles
 from src.utils.database_productividad import get_fg_dml
 from src.utils.database_log_interfaces import ins_logs, update_logs, del_logs
 import json
 from PIL import Image, ImageTk
 from src.ui_desktop.loader import Loader
 
+
 hacienda_seleccionada = ""
 suerte_seleccionada = ""
 def vista():
     global hacienda_seleccionada
     global suerte_seleccionada
-    window_width = 296
-    window_height = 200
     window = tk.Tk()
     window.title('Inicio')
-    window.geometry(f"{window_width}x{window_height}")
+    window.geometry(f"{round(WINDOW_WIDTH)}x{round(WINDOW_HEIGHT)}")
     window.resizable(0, 0)
-    center_window(window,window_width,window_height)
+    center_window(window,WINDOW_WIDTH,WINDOW_HEIGHT)
+    set_styles()
+    set_style_iterable_obj(window)
 
-    # Icono
-    original_logo = Image.open("logo_carmelita.png")
+    # Icono 
+    original_logo = Image.open(ABS_PATH_ICON_WINDOW)
     resized_image = original_logo.resize((380,int(169.001182)))
     window.icono = ImageTk.PhotoImage(resized_image)
     window.iconphoto(True, window.icono)
@@ -58,31 +64,47 @@ def vista():
         suerte_seleccionada = clicked_suertes.get()
         suerte_seleccionada = suerte_seleccionada.strip("(),'\" ")
 
-    # ? espacio inicial     
-    label_a = Label(window, text="")
-    label_a.grid(row=0, column=1, sticky="W",padx=12, pady=30)
+    # Imagen de fondo
+    ancho = 120
+    alto = int(53.3687944)
+    try:
+        bg_image = Image.open(ABS_PATH_BG_WINDOW)
+        bg_resized = bg_image.resize((ancho, alto))
+        bg_photo = ImageTk.PhotoImage(bg_resized)
 
-    #? Label y Dropdown Haciendas
-    label_haciendas = Label(window, text="Haciendas")
-    label_haciendas.grid(row=0, column=2, sticky="W", pady=30)
-    hacienda_combobox = ttk.Combobox(window, textvariable=clicked_haciendas, values=haciendas, state="normal", width=5)
-    hacienda_combobox.grid(row=0, column=3, sticky="E", pady=30)
+        # Canvas para la imagen de fondo
+        canvas = Canvas(window, width=ancho+30, height=alto+10)
+        canvas.grid(row=0,columnspan=12, rowspan=1)  # espacio que abarca de window
+        canvas.create_image(30, 0, image=bg_photo, anchor="nw")
+        canvas.image = bg_photo  # Evita que se recolecte el objeto por el garbage collector
+    except FileNotFoundError:
+        print("No se encontró el archivo de imagen de fondo.")
+
+    # ? espacio inicial     
+    label_a = tk.Label(window, text="")
+    label_a.grid(row=1, column=1, sticky="W",padx=7, pady=6)
+
+    # Label y Dropdown Haciendas #TODO : Quede aqui para empezar a aplicar estilos
+    label_haciendas = ttk.Label(window, text="Haciendas", style="Custom.TLabel")
+    label_haciendas.grid(row=1, column=2, sticky="W", pady=6, padx=0)
+    hacienda_combobox = ttk.Combobox(window, textvariable=clicked_haciendas, values=haciendas, state="normal", width=5,font=(FONT, BIG_FONT, "bold"))
+    hacienda_combobox.grid(row=1, column=3, sticky="E", pady=6, padx=0)
 
     # para texto de entrada
     hacienda_combobox.bind("<Return>", lambda event: actualizar_suertes())
     # para seleccion en el combobox
     hacienda_combobox.bind("<<ComboboxSelected>>", lambda event: actualizar_suertes())
 
-    #? espacio intermedio
-    label_b = Label(window, text="")
-    label_b.grid(row=0, column=4, sticky="W",padx=10, pady=30)
+    #? espacio intermedio entre haciendas y suertes
+    espacio = ttk.Label(window, text="",style="Custom.TLabel")  # Label vacío para crear espacio
+    espacio.grid(row=1, column=4, padx=15)  # Nueva columna para el espacio
 
     #? Label y  Dropdown Suertes
-    label_suertes = Label(window,text="Suertes")
-    label_suertes.grid(row=0, column=5, sticky="W", pady=30)
+    label_suertes = ttk.Label(window,text="Suertes", style="Custom.TLabel")
+    label_suertes.grid(row=1, column=5, sticky="W", pady=6, padx=0)
     clicked_suertes.trace_add("write", actualizar_suerte_seleccionada)
-    suerte_combobox = ttk.Combobox(window, textvariable=clicked_suertes, state="normal", width=5)
-    suerte_combobox.grid(row=0, column=6, sticky="E", pady=30)
+    suerte_combobox = ttk.Combobox(window, textvariable=clicked_suertes, state="normal", width=5,font=(FONT, BIG_FONT, "bold"))
+    suerte_combobox.grid(row=1, column=6, sticky="E", pady=6, padx=0)
 
     # funciones de envio
     def mensaje(fg_dml, estado_envio, estado_solinftec):
@@ -141,6 +163,11 @@ def vista():
         global fg_dml
         global hacienda_seleccionada
         global suerte_seleccionada
+
+        if not hacienda_seleccionada and not suerte_seleccionada:
+            messagebox.showwarning("Advertencia", "Por favor seleccione una hacienda y una suerte.")
+            return
+
         if not hacienda_seleccionada:
             messagebox.showwarning("Advertencia", "Por favor seleccione una hacienda.")
             return
@@ -149,9 +176,9 @@ def vista():
             messagebox.showwarning("Advertencia", "Por favor seleccione una suerte.")
             return
         
-        if '.' in suerte_seleccionada:
-            messagebox.showwarning("Advertencia", "Las suertes que contienen '.' no son una ópción válida")
-            return
+        # if '.' in suerte_seleccionada:
+        #     messagebox.showwarning("Advertencia", "Las suertes que contienen '.' no son una ópción válida")
+        #     return
         
         # Determinar la función a usar según la acción
         if accion == "anular":
@@ -196,50 +223,60 @@ def vista():
         suerte_seleccionada = ""
 
     def enviar():
-        loader = Loader(window)
+        window.withdraw()
+        loader = Loader()
+        loader.show()
         try:
-            loader.show()
             manejo_respuesta("enviar")
-            loader.hide()
         except Exception as e:
-            loader.hide()
             messagebox.showerror("Error",f"Error inesperado al intentar enviar la solicitud: {e}")
+        finally:
+            if loader is not None and loader.winfo_exists():
+                loader.hide()
+            window.deiconify()
     
     def anular():
-        loader = Loader(window)
+        window.withdraw()
+        loader = Loader()
+        loader.show()
         try:
-            loader.show()
             manejo_respuesta("anular")
-            loader.hide()
         except Exception as e:
-            loader.hide()
             messagebox.showerror("Error",f"Error inesperado al intentar anular la solicitud: {e}")
-        
-
-    # Imagen de fondo
-    ancho = 180
-    alto = int(80.0531916)
-    try:
-        bg_image = Image.open("logo_carmelita.png")
-        bg_resized = bg_image.resize((ancho, alto))
-        bg_photo = ImageTk.PhotoImage(bg_resized)
-
-        # Canvas para la imagen de fondo
-        canvas = Canvas(window, width=ancho, height=alto)
-        canvas.grid(columnspan=7, rowspan=2)  # espacio que abarca de window
-        canvas.create_image(0, 0, image=bg_photo, anchor="nw")
-        canvas.image = bg_photo  # Evita que se recolecte el objeto por el garbage collector
-    except FileNotFoundError:
-        print("No se encontró el archivo de imagen de fondo.")
+        finally:
+            if loader is not None and loader.winfo_exists():
+                loader.hide()
+            window.deiconify()
 
 
-    #? Botón de enviar    
-    button = tk.Button(window, text="Enviar", command=enviar, background="#006B37", foreground="#FFFFFF", font=('Montserrat', 10, "bold"))
-    button.grid(row=3, column=3, columnspan=2, pady=0, sticky="W")
+    #? Botón de enviar     style="Custom.TButton"  style="Custom_Revert.TButton"
+    button = ttk.Button(window, text="Enviar", command=enviar, style="Custom.TButton")
+    button.grid(row=3, column=2, columnspan=6, pady=30, sticky="W")
+
 
     #? Botón Eliminar
-    button = tk.Button(window, text="Anular", command=anular, background="#E5006D", foreground="#FFFFFF", font=('Montserrat', 10, "bold"))
-    button.grid(row=3, column=4, columnspan=2, pady=0, sticky="E")   
+    button = ttk.Button(window, text="Anular", command=anular, style="Custom_Revert.TButton")
+    button.grid(row=3, column=4, columnspan=6, pady=30, sticky="E")   
+
+    #? cerrar la aplicacion
+    def on_close_app(window):
+        """
+        Función para confirmar el cierre de una ventana en Tkinter.
+
+        Args:
+            window (tk.Tk): La ventana que se va a cerrar.
+        """
+        if messagebox.askokcancel("Salir", "¿Seguro que deseas cerrar la aplicación?"):
+            window.destroy() 
+    window.protocol("WM_DELETE_WINDOW", lambda: on_close_app(window))
+
+    #? Footer
+    footer = tk.Label(
+        window,
+        text=f"Aplicativo Integración Productividad a Solinftec - Versión: {VERSION_DESKTOP}",
+        anchor="w",
+        font=(FONT, SMALL_FONT,"italic"),)
+    footer.place(x=232, y=200, anchor="se")
 
     window.mainloop()
 

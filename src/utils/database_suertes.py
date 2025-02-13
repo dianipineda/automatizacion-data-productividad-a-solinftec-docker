@@ -11,7 +11,7 @@ Aqui no se importa ninguna data
 configurar_cliente_oracle()
 def query_get_suertes(hacienda):
     return """
-        SELECT DISTINCT
+     SELECT DISTINCT
             vw.tal AS cd_zona
         FROM
             user_carmelita.historia vw
@@ -23,7 +23,7 @@ def query_get_suertes(hacienda):
                 user_carmelita.tab_lq_dados
             WHERE
                 codigo = 'CARTO_SOLI'
-        ) tl ON tl.p2 = vw.tal
+        ) tl ON tl.p2 = replace(vw.tal,'.','')
         WHERE
             vw.data_ultcol between current_date-20 AND current_date
             AND vw.ton_mol > 0

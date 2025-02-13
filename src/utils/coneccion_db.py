@@ -6,7 +6,7 @@ import sys
 import subprocess
 from tkinter import messagebox
 import time
-from source.oracle_client import install_oracle_client
+from source.oracle_client import install_oracle_client # type: ignore
 # Funciones
 def configurar_cliente_oracle():
     """

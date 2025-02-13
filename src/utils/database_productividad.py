@@ -28,7 +28,7 @@ def query_get_productividad(hacienda, suerte):
     SELECT
             '1'                      cd_unidade,
             '9249'                   cd_operacao,
-            tl.p1||substr(tl.p2,1, INSTR(tl.p2,'.', 1, 1)-1  ) || substr(tl.p2,INSTR(vw.tal,'.', 1, 1)+1,1   )||vw.safra cd_ordem_servico,
+            tl.p1||tl.p2||vw.safra cd_ordem_servico2,
             tl.p1                   cd_fazenda,
             tl.p2                   cd_zona,
             tl.p3                    cd_talhao,
@@ -50,13 +50,13 @@ def query_get_productividad(hacienda, suerte):
             WHERE
                 codigo = 'CARTO_SOLI'
         )       tl ON tl.p1 = vw.faz
-                AND tl.p2 = vw.tal
+                AND tl.p2 = replace(vw.tal,'.','')
         WHERE
             vw.data_ultcol between   current_date-20 and current_date
             and vw.faz = :hacienda
             and vw.tal = :suerte
             and tl.p3 is not null
-            and vw.ton_mol > 0
+            and vw.ton_mol > 0    
     """
 
 def operacion_productividad(hacienda,suerte):
